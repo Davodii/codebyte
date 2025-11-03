@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root {
+    /* TODO: Define global CSS variables */
+    --color-brand-primary: #10b981;
+}
+
+:global(body) {
+    min-height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+}
