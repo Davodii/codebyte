@@ -1,12 +1,31 @@
-@import "tailwindcss";
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+
+/* this is caused by Preflight,
+   which resets the default styles,
+   so this is not needed */
+/* @import "tailwindcss/preflight.css" layer(base); */
+
+@import "tailwindcss/utilities.css" layer(utilities);
 
 :root {
     /* TODO: Define global CSS variables */
-    --color-brand-primary: #10b981;
+    --accent: #58a6ff;
+    --surface: #1a1a1a;
+
+    --bg: #252731;
+    --primary: #171d22;
+    --secondary: #292c34; 
+    --accent-primary: #94e0ff;
+    --accent-secondary: #60af7b;
+    --text: #e0e3e6;
 }
 
 :global(body) {
     min-height: 100vh;
+    padding: 0;
     margin: 0;
     font-family: sans-serif;
+    background-color: var(--bg);
 }

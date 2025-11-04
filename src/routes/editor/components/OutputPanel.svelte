@@ -2,13 +2,7 @@
 
 </script>
 
-<div class="output">
+<div class="rounded-xl p-4 bg-(--primary) text-(--text)">
     <h1>Output</h1>
     <p> Here is where visualisation / terminal emulation will occur.</p>
 </div>
-
-<style>
-    .output {
-        background-color: aqua;
-    }
-</style>
