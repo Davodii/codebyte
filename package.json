@@ -13,10 +13,12 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@codemirror/basic-setup": "^0.20.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@tailwindcss/cli": "^4.1.16",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "monaco-editor": "^0.54.0"
+    "rollup": "^4.52.5"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.6",

@@ -40,7 +40,7 @@
         let w1 = newWidths[draggingIndex] + deltaPercentage;
         let w2 = newWidths[draggingIndex + 1] - deltaPercentage;
         
-        if (w1 > 5 && w2 > 5) {
+        if (w1 > 10 && w2 > 10) {
             newWidths[draggingIndex] = w1;
             newWidths[draggingIndex + 1] = w2;
             widths = newWidths;
