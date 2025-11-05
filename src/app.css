@@ -22,10 +22,11 @@
     --text: #e0e3e6;
 }
 
-:global(body) {
-    min-height: 100vh;
+body {
     padding: 0;
     margin: 0;
-    font-family: sans-serif;
+    max-height: 100vh;
+    min-height: 100vh;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     background-color: var(--bg);
 }

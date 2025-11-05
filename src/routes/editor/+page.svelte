@@ -7,22 +7,24 @@
     let codePanelRef: CodePanel;
 
     // Initial widths in percentages
-    let widths = [25, 50, 25];
+    let frUnits = $state([25, 50, 25]);
+    const splitterWidthPixels = 20;
 
-    // Computer property for CSS grid
-    $: gridColums = `${widths[0]}% 20px ${widths[1]}% 20px ${widths[2]}%`;
-
+    let gridColumns = $derived.by(() => {
+        return `${frUnits[0]}fr ${splitterWidthPixels}px ${frUnits[1]}fr ${splitterWidthPixels}px ${frUnits[2]}fr`;
+    });
+    
     // State for drag operation
-    let draggingIndex: number | null = null;
+    let draggingIndex: number | null = $state(null);
     let initialMouseX = 0;
-    let initialWidths: number[] = [];
+    let initialFrUnits: number[] = [];
     let editorLayout: HTMLElement;
 
     function startDrag(index: number) {
         return (event: MouseEvent) => {
             draggingIndex = index;
             initialMouseX = event.clientX;
-            initialWidths = [...widths];
+            initialFrUnits = [...frUnits];
             window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('mouseup', onMouseUp);
         };
@@ -32,22 +34,30 @@
         if (draggingIndex === null || !editorLayout) return;
 
         const deltaX = event.clientX - initialMouseX;
-        const totalWidth = editorLayout.offsetWidth;
-        const deltaPercentage = (deltaX / totalWidth) * 100;
 
-        let newWidths = [...initialWidths];
+        // Calculate the value of 1 fractional unit in pixels
+        const totalFrUnits = initialFrUnits.reduce((a,b) => a + b, 0);
 
-        let w1 = newWidths[draggingIndex] + deltaPercentage;
-        let w2 = newWidths[draggingIndex + 1] - deltaPercentage;
+        // Total available width = total width - total fixed splitter width
+        const totalAvailableWidth = editorLayout.offsetWidth - (splitterWidthPixels * 2);
+
+        // How many pixels correspond to 1 fractional unit
+        const pixelsPerFr = totalAvailableWidth / totalFrUnits;
+
+        // Convert mouse drag delta into change in fr
+        const frDelta = deltaX / pixelsPerFr;
+
+        let newFr = [...initialFrUnits];
+
+        let w1 = newFr[draggingIndex] + frDelta;
+        let w2 = newFr[draggingIndex + 1] - frDelta;
         
-        if (w1 > 10 && w2 > 10) {
-            newWidths[draggingIndex] = w1;
-            newWidths[draggingIndex + 1] = w2;
-            widths = newWidths;
-
-            if (codePanelRef) {
-                codePanelRef.resize();
-            }
+        // Apply minimum width constraint
+        const minFr = 5;
+        if (w1 > minFr && w2 > minFr) {
+            newFr[draggingIndex] = w1;
+            newFr[draggingIndex + 1] = w2;
+            frUnits = newFr;
         }
     }
 
@@ -63,20 +73,20 @@
     })
 </script>
 
-<div class="editor-layout" bind:this={editorLayout} style="grid-template-columns: {gridColums};">
+<div class="editor-layout" bind:this={editorLayout} style="grid-template-columns: {gridColumns};">
     <InfoPanel/>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div 
-        class="splitter"
-        on:mousedown={startDrag(0)}
+        class="splitter w-{splitterWidthPixels}"
+        onmousedown={startDrag(0)}
         role="separator"
         aria-label="Resize panel border between info and code"
     ></div>
-    <CodePanel bind:this={codePanelRef}/>
+    <CodePanel/>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div 
-        class="splitter"
-        on:mousedown={startDrag(1)}
+        class="splitter w-{splitterWidthPixels}"
+        onmousedown={startDrag(1)}
         role="separator"
         aria-label="Resize panel border between info and code"
     ></div>
@@ -89,14 +99,12 @@
 
     .editor-layout {
         display: grid;
-        height: 100vh;
-        padding: 0;
+        height: 100%;
+        padding: 20px;
         background-color: var(--bg);
-        overflow: hidden;
     }
 
     .splitter {
-        width: 20px;
         cursor: col-resize;
         background-color: #333;
         opacity: 0.1;
