@@ -2,11 +2,12 @@
     import { onMount } from 'svelte';
 
     import { EditorState } from '@codemirror/state';
+    import {basicSetup, EditorView } from 'codemirror';
     import { openSearchPanel, highlightSelectionMatches } from '@codemirror/search';
     import { indentWithTab, history, defaultKeymap, historyKeymap } from '@codemirror/commands';
     import { foldGutter, indentOnInput, indentUnit, bracketMatching, foldKeymap, syntaxHighlighting, defaultHighlightStyle} from '@codemirror/language';
     import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
-    import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap, EditorView} from '@codemirror/view';
+    import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap} from '@codemirror/view';
 
     // Theme
     import { oneDark } from "@codemirror/theme-one-dark";
@@ -18,11 +19,12 @@
 
     onMount(() => {
         let extensions = [
+            basicSetup,
             lineNumbers(),
             highlightActiveLineGutter(),
             highlightSpecialChars(),
             history(),
-            foldGutter(),
+            // foldGutter(),
             drawSelection(),
             indentUnit.of('\t'),
             EditorState.allowMultipleSelections.of(true),
@@ -51,8 +53,8 @@
             syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
 
             // Theme
-            oneDark,
-        ]
+            // oneDark,
+        ];
 
         const startState = EditorState.create({
             doc: "console.log('hello!');",
@@ -75,9 +77,22 @@
     });
 </script>
 
-<div class="h-full w-full" bind:this={editorDiv}></div>
+<div class="editor" bind:this={editorDiv}></div>
 
 <style>
-    .h-full { height: 100%; }
-    .w-full { width: 100%; }
+    .editor {
+        flex-grow: 1;
+        min-height: 0;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    :global(.cm-editor) {
+        height: 100%;
+        width: 100%;
+    }
+
+    :global(.cm-scroller) {
+        overflow:auto;
+    }
 </style>
