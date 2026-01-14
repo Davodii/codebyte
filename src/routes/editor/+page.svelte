@@ -1,12 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
-    import CodePanel from "./components/CodePanel.svelte";
-    import InfoPanel from "./components/InfoPanel.svelte";
-    import OutputPanel from "./components/OutputPanel.svelte";
     import Controls from "./components/Controls.svelte";
     import Editor from "./components/Editor.svelte";
-    import { rectangularSelection } from "@codemirror/view";
-
 
     let container: HTMLDivElement;
     let leftSplitter: HTMLDivElement;
