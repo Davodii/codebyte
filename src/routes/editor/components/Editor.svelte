@@ -17,6 +17,8 @@
 
     let editorDiv: HTMLDivElement;
 
+    let view: EditorView;
+
     onMount(() => {
         let extensions = [
             basicSetup,
@@ -57,7 +59,27 @@
         ];
 
         const startState = EditorState.create({
-            doc: "console.log('hello!');",
+            doc: `
+let unsorted = [ 9, 8, 7, 6, 5, 4, 3, 2, 1 ]
+
+let i = 0
+let n = len(unsorted)
+
+while i < n do
+    let j = 0
+    while j < (n - i - 1) do
+        if unsorted[j] > unsorted[j + 1] do
+            let temp = unsorted[j]
+            unsorted[j] = unsorted[j + 1]
+            unsorted[j + 1] = temp
+        end
+
+        j = j + 1
+    end
+    i = i + 1
+end
+
+unsorted`,
             extensions: [
                 extensions,
                 // EditorView.updateListener.of(update => {
@@ -68,13 +90,20 @@
             ]
         });
 
-        const view = new EditorView({
+        view = new EditorView({
             state: startState,
             parent: editorDiv,
         });
 
         return () => view.destroy();
     });
+
+    export const getCode = () => {
+        if (view) {
+            return view.state.doc.toString();
+        }
+        return "";
+    }
 </script>
 
 <div class="editor" bind:this={editorDiv}></div>

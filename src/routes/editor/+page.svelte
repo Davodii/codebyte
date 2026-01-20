@@ -1,7 +1,11 @@
 <script lang="ts">
+    import { invoke } from "@tauri-apps/api/core";
+    import { formatTraceEvent, formatValue } from "../../lib/utils";
+
     import { onDestroy, onMount } from "svelte";
     import Controls from "./components/Controls.svelte";
     import Editor from "./components/Editor.svelte";
+    import type { DataSource, TraceEvent, TrackedValue } from "$lib/types";
 
     let container: HTMLDivElement;
     let leftSplitter: HTMLDivElement;
@@ -10,10 +14,61 @@
     let centrePanel: HTMLDivElement;
     let rightPanel: HTMLDivElement;
 
+    let editorRef: Editor;
+
     let activeSplitter: number | null = $state(null);
     let initialFixedPanelPercentage = $state(0);
     const SPLITTER_WIDTH_PIXELS = 10;
     const MIN_PANEL_WIDTH_PERCENT = 15;
+
+    let displayArray = $state<TrackedValue[]>([]);
+    let arrayId = $state<number | null>(null);
+    let sourceMap = new Map<string, DataSource>();
+
+    let isRunning = $state(false);
+    let playbackSpeed = $state(200); // milliseconds
+
+    let comparing = $state<number[]>([]);
+
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+    async function runVisualiser(events: TraceEvent[]) {
+        if (isRunning) return;
+        isRunning = true;
+
+        // Reset the state before running again
+        displayArray = [];
+        sourceMap.clear();
+
+        for (const event of events) {
+            // Detect and log swaps in real-time
+            if (typeof event !== "string" && "Assign" in event) {
+                const {from, to} = event.Assign;
+                const originalOrigin = resolveSource(from);
+
+                if (typeof to !== "string" 
+                    && typeof originalOrigin !== "string" 
+                    &&"ArraySlot" in to 
+                    && "ArraySlot" in originalOrigin
+                ) {
+                    if (originalOrigin.ArraySlot.id === to.ArraySlot.id 
+                        && originalOrigin.ArraySlot.index !== to.ArraySlot.index) {
+                        comparing = [];
+                        comparing.push(originalOrigin.ArraySlot.index);
+                        comparing.push(to.ArraySlot.index);
+                    }
+
+                    // Only apply delays when we are swapping
+                    await delay(playbackSpeed);
+                }
+            }
+
+            // Process event logic
+            applyEventToState(event);
+        }
+
+        isRunning = false;
+    }
 
     const startDrag = (splitterID: number) => (e: MouseEvent) => {
         e.preventDefault(); // Prevent accidental selection on drag start
@@ -110,10 +165,100 @@
         }
     }
 
+    function resolveSource(source: DataSource): DataSource {
+        if (typeof source === "object" && source != null && "Variable" in source) {
+            return sourceMap.get(`var:${source.Variable}`) || source;
+        }
+        return source;
+    }
+
+    function applyEventToState(event: TraceEvent) {
+        if ("Init" in event) {
+            const {location, value} = event.Init;
+
+            // Track the source chain
+            if (typeof location !== "string" && "Variable" in location) {
+                sourceMap.set(`var:${location.Variable}`, value.source);
+            }
+            
+            const val = value.value;
+            if (typeof(val) !== "string" && "Array" in val) {
+                displayArray = [...val.Array.elements];
+                arrayId = val.Array.id;
+            }
+        }
+
+        if ("Assign" in event) {
+            const { to, value, from } = event.Assign;
+
+            // Resolve the "True" origin of this data
+            const originalOrigin = resolveSource(from);
+
+            if (typeof to === "object") { 
+                if ("Variable" in to) {
+                    sourceMap.set(`var:${to.Variable}`, originalOrigin);
+                } else if ("ArraySlot" in to) {
+                    sourceMap.set(`slot:${to.ArraySlot.id}:${to.ArraySlot.index}`, originalOrigin);
+                }
+
+                if ("ArraySlot" in to && to.ArraySlot.id === arrayId) {
+                    displayArray[to.ArraySlot.index] = value;
+
+                    // If an array slot receives data that originally lived in a different array slot
+                    if (typeof originalOrigin !== "string" 
+                        && "ArraySlot" in originalOrigin
+                        && originalOrigin.ArraySlot.id === to.ArraySlot.id
+                        && originalOrigin.ArraySlot.index !== to.ArraySlot.index
+                    ) {
+                        console.log(
+                            `🎯 SWAP DETECTED: Value originally from index [${originalOrigin.ArraySlot.index}] ` +
+                            `is now moving into index [${to.ArraySlot.index}] (via ${(typeof from !== "string" && "Variable" in from) ? from.Variable : 'direct'})`
+                        );
+                    }
+                }
+            }
+
+            // if (typeof to ==="object" 
+            //     && to !== null 
+            //     && "ArraySlot" in to 
+            //     && to.ArraySlot.id === arrayId
+            // ) {
+            //     // Update the state
+            //     displayArray[to.ArraySlot.index] = value;
+
+            //     // Identify a swap
+            //     if (typeof from === "object" && from !== null && "ArraySlot" in from) {
+            //         console.log(`[SWAP]`);
+            //     }
+            // }
+        }
+    }
+
+    async function runCode() {
+        // Get code from the editor component
+        const code = editorRef.getCode();
+
+        try {
+            const events: TraceEvent[] = await invoke('interpret_code', { input: code });
+
+            runVisualiser(events);
+        } catch (error) {
+            console.error('Error interpreting code:', error);
+        }
+    }
+
     onDestroy(() => {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
     });
+
+    function getValue(value: TrackedValue) : number {
+        const val = value.value;
+        if (typeof val === "object" && "Integer" in val) {
+            return val.Integer;
+        }
+        return -1;
+    }
 
 </script>
 
@@ -146,8 +291,9 @@
                 <div id="controls">
                     <Controls />
                 </div>
+                <button onclick={runCode}>Run Code</button>
                 <div id="editor-container">
-                    <Editor />
+                    <Editor bind:this={editorRef} />
                 </div>
             </div>
         </div>
@@ -166,12 +312,37 @@
             <h1>Output Panel</h1>
             <hr>
             <div class="panel-content">
-                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Distinctio eligendi non ratione nobis harum ipsam voluptas assumenda mollitia! Quaerat provident ad debitis quos quo, minus veritatis necessitatibus dolorem iusto dicta!</p>
+                <!-- <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Distinctio eligendi non ratione nobis harum ipsam voluptas assumenda mollitia! Quaerat provident ad debitis quos quo, minus veritatis necessitatibus dolorem iusto dicta!</p> -->
+                <h2>Unsorted Array:</h2>
+                <div class="flex">
+                    {#each displayArray as item, i}
+                    <div 
+                        class="bar"
+                        class:is-comparing={comparing.includes(i)}
+                        style:height="{((typeof item.value !== "string" && "Integer" in item.value) ? item.value.Integer : 0) * 10}px"
+                    >
+                    </div>
+                    <style>
+                        .bar {
+                            width: 35px;
+                            background-color: #4a90e2;
+                            transition: all 0.1 ease;
+                            position: relative;
+                        }
+
+                        /* Highlight when two elements are being compared */
+                        .is-comparing {
+                            background-color: #f5a623; /* Orange */
+                            /* transform: scale(1.1); */
+                            z-index: 2;
+                        }
+                    </style>
+                    {/each}
+                </div>
             </div>
         </div>
     </div>
 </div>
-
 <style>
     .content {
         display: flex;
