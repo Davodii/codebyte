@@ -314,13 +314,14 @@
             <div class="panel-content">
                 <!-- <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Distinctio eligendi non ratione nobis harum ipsam voluptas assumenda mollitia! Quaerat provident ad debitis quos quo, minus veritatis necessitatibus dolorem iusto dicta!</p> -->
                 <h2>Unsorted Array:</h2>
-                <div class="flex">
+                <div class="flex align-middle">
                     {#each displayArray as item, i}
                     <div 
-                        class="bar"
+                        class="bar align-middle"
                         class:is-comparing={comparing.includes(i)}
                         style:height="{((typeof item.value !== "string" && "Integer" in item.value) ? item.value.Integer : 0) * 10}px"
                     >
+                        <span>{((typeof item.value !== "string" && "Integer" in item.value) ? item.value.Integer : 0)}</span>
                     </div>
                     <style>
                         .bar {

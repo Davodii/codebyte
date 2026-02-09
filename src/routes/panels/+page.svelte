@@ -26,7 +26,7 @@
                 <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Temporibus reprehenderit corrupti voluptate incidunt. Distinctio dicta eaque minus perferendis ratione. Tenetur nihil vel earum qui quo odit, inventore aliquid corrupti dolores.</p>
             </div>
         </div>
-        <div class="splitter" />
+        <div class="splitter"></div>
         <div class="panel">
             <h1>Panel 2</h1>
             <div class="panel-content flex flex-col">
@@ -34,7 +34,7 @@
                 <div class="editor" bind:this={editorDiv}></div>
             </div>
         </div>
-        <div class="splitter" />
+        <div class="splitter"></div>
         <div class="panel">
             <h1>Panel 3</h1>
             <div class="panel-content">

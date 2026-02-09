@@ -1,0 +1,72 @@
+[
+    {
+        "name": "Mimble Basiscs",
+        "items": [
+            "Comments",
+            "Strings",
+            "Integers",
+            "Floats",
+            "Booleans"
+        ]
+    },
+    {
+        "name": "Variables",
+        "items": [
+            "Declaring a Variable",
+            "Copying Values",
+            "Swapping Variables"
+        ]
+    },
+    {
+        "name": "Scopes",
+        "items": [
+            "Declaring Scopes",
+            "Going In and Out of Scope",
+            "Nested Scopes"
+        ]
+    },
+    {
+        "name": "Control Flow",
+        "items": [
+            "Syntax",
+            "Else",
+            "Elif"
+        ]
+    },
+    {
+        "name": "While Loops",
+        "items": [
+            "Syntax",
+            "Counting Up",
+            "Terminating Loops",
+            "Fibonacci Numbers"
+        ]
+    },
+    {
+        "name": "Arrays",
+        "items": [
+            "Creating Arrays",
+            "Swapping Elements",
+            "Traversing Arrays",
+            "Sorting"
+        ]
+    },
+    {
+        "name": "For Loops",
+        "items": [
+            "Syntax",
+            "Iterating Over Arrays",
+            "Range Syntax"
+        ]
+    },
+    {
+        "name": "Functions",
+        "items": [
+            "Defining Functions",
+            "Calling Functions",
+            "Returning Values",
+            "Arguments",
+            "Recursion"
+        ]
+    }
+]
