@@ -1,5 +1,7 @@
 <script lang="ts">
-    import levelsData from "../../../data/levels.json";
+    import levelsData from "$lib/data/level-hierarchy.json";
+
+    let { onSelect } = $props();
 
     let sections = $state(levelsData.map(section => ({
         ...section,
@@ -15,12 +17,11 @@
     function loadLevel(item: string) {
         selectedLevel = item;
         console.log(`Loading Level: ${item}`);
-
-        // TODO: handle loading in the correct level data
+        onSelect(item);
     }
 </script>
 
-<nav class="level-hierarchy">
+<div class="level-hierarchy">
     <ul id="level-sections">
         {#each sections as section, i}
         <li>
@@ -45,7 +46,7 @@
         </li>
         {/each}
     </ul>
-</nav>
+</div>
 
 <style>
     ul {
