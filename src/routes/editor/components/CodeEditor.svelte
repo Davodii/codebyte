@@ -15,9 +15,20 @@
     // Language
     import { javascript } from '@codemirror/lang-javascript';
 
-    let editorDiv: HTMLDivElement;
+    let { code = $bindable() } = $props<{ code: string }>();
 
+    let editorDiv: HTMLDivElement;
     let view: EditorView;
+
+    // React to external changes
+    // This effect runs whenever the 'code' prop changes from the outside
+    $effect(() => {
+        if (view && code !== view.state.doc.toString()) {
+            view.dispatch({
+                changes: { from: 0, to: view.state.doc.length, insert: code}
+            });
+        }
+    });
 
     onMount(() => {
         let extensions = [
@@ -56,37 +67,19 @@
 
             // Theme
             // oneDark,
+
+            // React to internal changes
+            EditorView.updateListener.of((update) => {
+                if (update.docChanged) {
+                    code = update.state.doc.toString();
+                }
+            })
         ];
 
         const startState = EditorState.create({
-            doc: `
-let unsorted = [ 9, 8, 7, 6, 5, 4, 3, 2, 1 ]
-
-let i = 0
-let n = len(unsorted)
-
-while i < n do
-    let j = 0
-    while j < (n - i - 1) do
-        if unsorted[j] > unsorted[j + 1] do
-            let temp = unsorted[j]
-            unsorted[j] = unsorted[j + 1]
-            unsorted[j + 1] = temp
-        end
-
-        j = j + 1
-    end
-    i = i + 1
-end
-
-unsorted`,
+            doc: code,
             extensions: [
                 extensions,
-                // EditorView.updateListener.of(update => {
-                //     if (update.docChanged) {
-                //         onChange(update.state.doc.toString());
-                //     }
-                // })
             ]
         });
 
@@ -97,13 +90,6 @@ unsorted`,
 
         return () => view.destroy();
     });
-
-    export const getCode = () => {
-        if (view) {
-            return view.state.doc.toString();
-        }
-        return "";
-    }
 </script>
 
 <div class="editor" bind:this={editorDiv}></div>

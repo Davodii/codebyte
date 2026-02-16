@@ -1,4 +1,4 @@
-import { mount } from "svelte";
+import { mount, unmount } from "svelte";
 import { ModuleRegistry } from "./module-registry";
 import ModuleContainer from "../components/visualiser/ModuleContainer.svelte";
 import type { Level } from "./data/levels/level";
@@ -28,6 +28,8 @@ export interface VisualiserContext {
     bus: ModuleEventBus;
 }
 
+type ModuleContainerInstance = ReturnType<typeof mount>;
+
 /**
  * The main visualiser class, responsible for managing the loaded modules, handling events and rendering the visualisation.
  */
@@ -44,7 +46,7 @@ export class Visualiser {
 
     // Store the component instances for each module, so we can call 
     // functions on them later if needed (e.g. to update their UI)
-    private moduleContainers = new Map<string, ModuleContainer>();
+    private moduleContainers = new Map<string, ModuleContainerInstance>();
 
     // TODO: provide a way for modules to access certain divs?
 
@@ -60,10 +62,7 @@ export class Visualiser {
         this.registry.getAll().forEach(mod => mod.destroy());
         
         // Remove module containers
-        this.moduleContainers.forEach(container => {
-            this.root?.removeChild(container.getElement());
-        });
-
+        this.moduleContainers.forEach(instance => unmount(instance));
         this.moduleContainers.clear();
     }
 

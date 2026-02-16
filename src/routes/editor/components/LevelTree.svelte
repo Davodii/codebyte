@@ -19,6 +19,10 @@
         console.log(`Loading Level: ${item}`);
         onSelect(item);
     }
+
+    export function getSelectedLevel() : string {
+        return selectedLevel;
+    }
 </script>
 
 <div class="level-hierarchy">

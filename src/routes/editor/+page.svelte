@@ -1,19 +1,52 @@
 <script lang="ts">
-    import { engine } from "$lib/engine.svelte";
     import LevelTree from "./components/LevelTree.svelte";
-    import Editor from "./components/Editor.svelte";
-    import Visualiser from "./components/Visualiser.svelte";
+    import Editor from "./components/CodeEditor.svelte";
     import Controls from "./components/Controls.svelte";
+    import { onMount, setContext } from "svelte";
+    import { LevelSession } from "$lib/level-session.svelte";
+    import { Visualiser } from "$lib/visualiser";
+    import { getLevelContstructor } from "$lib/data/levels/level-map";
 
-    const handleSelect = (id: string) => engine.loadLevel(id);
+    const loadLevel = (id: string) => {
+        if (!visualiser) return;
 
-    let editorRef: Editor;
+        // Instantiate the level
+        const LevelClass = getLevelContstructor(id);
+        const level = new LevelClass();
 
+        session = new LevelSession(level, visualiser);
+    }
+
+    let session = $state<LevelSession | null>(null);
+    let visualiserRoot = $state<HTMLDivElement>();
+
+    let visualiser = $state<Visualiser>();
+
+    let levelTree = $state<LevelTree>();
+
+    onMount(() => {
+        // Create a new visualiser
+        visualiser = new Visualiser(visualiserRoot!);
+
+        // Load the level
+        const currentSelectedId = levelTree!.getSelectedLevel();
+        loadLevel(currentSelectedId);
+
+        // Provide to children via Context
+        setContext('level-session', session);
+
+        return () => {
+            // Cleanup logic
+            session?.pause();
+
+            // TODO: cleanup anything else?
+        };
+    });
 </script>
 
 <div class="layout">
     <nav class="nav-bar">
-        <LevelTree onSelect={handleSelect}/>
+        <LevelTree onSelect={loadLevel} bind:this={levelTree} />
     </nav>
 
     <main class="panel-container">
@@ -31,7 +64,7 @@
             <div class="panel-content">
                 <Controls />
                 <div id="editor-container">
-                    <Editor bind:this={editorRef} />
+                    <Editor bind:code={session!.state.code} />
                 </div>
             </div>
         </section>
@@ -39,10 +72,7 @@
         <div class="splitter"></div>
 
         <section class="panel shadow-xl" style="width: 30%;">
-            <Visualiser
-                events={engine.events}
-                step={engine.currentIndex}
-            />
+            <div class="visualiser-canvas" bind:this={visualiserRoot}></div>
         </section>
     </main>
 </div>
@@ -98,5 +128,9 @@
 
     .col-resize-cursor {
         cursor: col-resize;
+    }
+
+    .visualiser-canvas {
+        background-color: aquamarine; /* Testing purposes */
     }
 </style>

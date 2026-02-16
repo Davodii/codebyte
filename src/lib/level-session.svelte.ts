@@ -28,6 +28,17 @@ export class LevelSession {
         this.visualiser = visualiser;
     }
 
+    init() {
+        // Initialise the visualiser with the modules specified in the level configuration
+        this.visualiser.initLevel(this.level);
+
+        // Initialise the level
+        this.level.init();
+
+        // Move code into the state
+        this.state.code = this.level.config.initialCode;
+    }
+
     /**
      * Start the level session. 
      * 

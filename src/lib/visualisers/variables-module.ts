@@ -1,5 +1,5 @@
 import type { TraceEvent } from "$lib/data/events/events";
-import { mount } from "svelte";
+import { mount, unmount, type Component } from "svelte";
 import VariableBox from "../../components/visualiser/VariableBox.svelte";
 import { VisualiserModule } from "./visualiser-module";
 import { ModuleEventType } from "$lib/event-bus";
@@ -9,6 +9,8 @@ export type Variable = {
     name: string;
     data: any;
 }
+
+type VariableBoxInstance = ReturnType<typeof mount>;
 
 export class VariablesModule extends VisualiserModule {
     // Need to store:
@@ -25,9 +27,9 @@ export class VariablesModule extends VisualiserModule {
     id = 'variables';
 
     private variables = $state(new Map<string, Variable>());
-    private section = $state<HTMLDivElement | null>(null);
 
-    private activeComponents = new Map<string, any>();
+    // Current DOM elements
+    private activeComponents = new Map<string, VariableBoxInstance>();
 
     private handleInit(event: TraceEvent) {
         if (!('Init' in event)) return;
@@ -44,12 +46,11 @@ export class VariablesModule extends VisualiserModule {
         this.variables.set(name, variable);
 
         const instance = mount(VariableBox, {
-            target: this.section!,
+            target: this.container!,
             props: { variable: variable}
         });
 
         this.activeComponents.set(name, instance);
-
 
         // Emit event to the event bus
         this.ctx?.bus.emit(ModuleEventType.VARIABLE_DECLARED, variable);
@@ -84,8 +85,17 @@ export class VariablesModule extends VisualiserModule {
 
     destroy(): void {
         // Cleanup the UI
-        this.activeComponents.forEach(instance => instance.$destroy());
+        this.activeComponents.forEach(instance => unmount(instance));
         this.activeComponents.clear();
+    }
+
+    private removeVariable(name: string) {
+        const instance = this.activeComponents.get(name);
+        if (!instance) return;
+
+        unmount(instance);
+        this.activeComponents.delete(name);
+        this.variables.delete(name);
     }
 
     init(ctx: VisualiserContext, container: HTMLDivElement): void {
