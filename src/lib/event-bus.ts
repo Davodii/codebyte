@@ -23,30 +23,33 @@ export interface ModuleEventMap {
     };
 }
 
+type EventCallback<K extends keyof ModuleEventMap> = ((payload: ModuleEventMap[K]) => void);
+
 /**
  * A simple typed event emitter class to allow modules to communicate with each other and the visualiser.
  * 
  * This is used as the event bus for the visualiser system, allowing modules to emit events that other modules can listen to without needing to know about each other directly.
  */
 export class ModuleEventBus {
+
     private listeners: {
-        [K in keyof ModuleEventMap]?: ((payload: ModuleEventMap[K]) => void)[]
+        [K in keyof ModuleEventMap]?: EventCallback<K>[]
     } = {};
 
     /**
      * Subscribe to a module event.
      * 
      * @param event 
-     * @param cb 
+     * @param payload 
      */
     on<K extends keyof ModuleEventMap>(
         event: K, 
-        cb: (payload: ModuleEventMap[K]) => void
+        callback: (payload: ModuleEventMap[K]) => void
     ) {
         if (!this.listeners[event]) {
             this.listeners[event] = [];
         }
-        this.listeners[event]!.push(cb);
+        this.listeners[event]!.push(callback);
     }
 
     /**
@@ -59,6 +62,6 @@ export class ModuleEventBus {
         event: K, 
         payload: ModuleEventMap[K]
     ) {
-        this.listeners[event]?.forEach(cb => cb(payload));
+        this.listeners[event]?.forEach(callback => callback(payload));
     }
 }
