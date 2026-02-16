@@ -1,40 +1,30 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { engine } from "$lib/engine.svelte";
-    import { fly } from "svelte/transition";
+    import { Visualiser } from "$lib/visualiser";
+
+    let canvasElement = $state<HTMLDivElement | null>(null);
+    let visualiserInstance = $state<Visualiser | null>(null);
+
+    $effect(() => {
+        if (canvasElement && !visualiserInstance) {
+            // Instantiate the logic once the div exists
+            visualiserInstance = new Visualiser(canvasElement);
+        }
+    });
+
+    // React to level changes
+    // $effect(() => {
+    //     if (visualiserInstance && engine.state.currentLevelId) {
+    //         const modules = get(engine.state.currentLevelId)
+    //     }
+    // })
 </script>
 
-<div class="output-grid">
-    {#each Array.from(engine.snapshot) as [name, value]}
-        <div
-            id="var={name}"
-            class="variable-box"
-            class:highlighted={engine.currentEvent?.name === name}
-            in:fly={{ y: 20 }}
-        >
-            <span class="label">{name}</span>
-            <span class="value">{value}</span>
-
-            <!-- TODO: point this variable out if it is new -->
-        </div>
-    {/each}
-</div>
+<div class="visualiser-canvas" bind:this={canvasElement}></div>
 
 <style>
-    .variable-box {
-        border: 2px solid #4a90e2;
-        padding: 1rem;
-        transition: all 0.2s;
+    .visualiser-canvas {
+        background-color: aquamarine; /* Testing purposes */
     }
-
-    .highlighted {
-        border-color: #f5a623;
-        transform: scale(1.05);
-    }
-
-    /* .pointer-arrow {
-        position: absolute;
-        right: -60px;
-        color: #f5a623;
-        font-weight: bold;
-    } */
 </style>

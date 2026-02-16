@@ -1,4 +1,4 @@
-import type { DataSource, TraceEvent, Value } from "./types";
+import type { DataSource, TraceEvent, Value } from "./events";
 
 export function formatValue(v: Value) : string {
     if (v === "Nil") return "Nil";
