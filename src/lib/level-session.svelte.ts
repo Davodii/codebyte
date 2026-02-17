@@ -97,8 +97,6 @@ export class LevelSession {
                 continue;
             }
 
-            console.log("Processing event:");
-
             const currentEvent = this.state.events[this.state.currentIndex];
             const history = this.state.events.slice(0, this.state.currentIndex + 1);
 

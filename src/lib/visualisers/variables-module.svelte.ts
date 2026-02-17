@@ -36,12 +36,11 @@ export class VariablesModule extends VisualiserModule {
     }
 
     private handleInit(event: TraceEvent) {
-        if (!('Init' in event)) return;
-        if (!('location' in event.Init)) return;
-        if (typeof event.Init.location !== 'object' || !('Variable' in event.Init.location)) return;
+        if (event.kind !== "Init") return;
+        if (event.location.kind !== "Variable") return; // Skip if not a variable declaration
 
-        const name = event.Init.location.Variable;
-        const data = event.Init.value;
+        const name = event.location.name;
+        const data = event.value;
 
         // Initialisation of a variable
         const variable : Variable = { name, data };
@@ -58,40 +57,37 @@ export class VariablesModule extends VisualiserModule {
             }
         });
 
-        console.log("Hooray");
-
         this.activeComponents.set(name, instance);
 
         // Emit event to the event bus
         this.ctx?.bus.emit(ModuleEventType.VARIABLE_DECLARED, variable);
     }
 
-    private handleUpdate(event: TraceEvent) {
-        if (!('Assign' in event)) return;
-        if (!('to' in event.Assign)) return;
-        if (typeof event.Assign.to !== 'object' || !('Variable' in event.Assign.to)) return;
-    
-        const name = event.Assign.to.Variable;
-        const newData = event.Assign.value;
+    private handleAssign(event: TraceEvent) {
+        if (event.kind !== "Assign") return;  
+        if (event.to.kind !== "Variable") return; // Skip if not assigning to a variable
+        
+        const name = event.to.name;
+        const newData = event.value;
 
         const variable = this.variables.get(name);
         if (variable) {
-            const oldData = this.variables.get(name)?.data;
+            const oldData = variable.data;
             variable.data = newData;
 
             // Emit an event to the event bus
-            this.ctx?.bus.emit(ModuleEventType.VARIABLE_CHANGED, { name, oldData, newData });
+            this.ctx?.bus.emit(ModuleEventType.VARIABLE_CHANGED, { name: name, oldData, newData });
         }
     }
 
     handleEvent(event: TraceEvent, history: TraceEvent[]): void {
         console.log("VariablesModule received event:");
 
-        if ('Init' in event) {
+        if (event.kind === "Init") {
             this.handleInit(event);
         }
-        if ('Assign' in event) {
-            this.handleUpdate(event);
+        if (event.kind === "Assign") {
+            this.handleAssign(event);
         }
     }
 
