@@ -1,4 +1,4 @@
-import type { DataSource, TraceEvent, Value } from "./events";
+import type { DataSource, TraceEvent, Value } from "./events.svelte";
 
 export function formatValue(v: Value) : string {
     if (v === "Nil") return "Nil";

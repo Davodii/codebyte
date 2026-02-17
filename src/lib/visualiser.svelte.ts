@@ -1,11 +1,11 @@
-import { mount, unmount } from "svelte";
-import { ModuleRegistry } from "./module-registry";
+import { mount, tick, unmount } from "svelte";
+import { ModuleRegistry } from "./module-registry.svelte";
 import ModuleContainer from "../components/visualiser/ModuleContainer.svelte";
-import type { Level } from "./data/levels/level";
-import { VariablesModule } from "./visualisers/variables-module";
-import type { TraceEvent } from "./data/events/events";
-import { ModuleEventBus } from "./event-bus";
-import type { VisualiserModule } from "./visualisers/visualiser-module";
+import type { Level } from "./data/levels/level.svelte";
+import { VariablesModule } from "./visualisers/variables-module.svelte";
+import type { TraceEvent } from "./data/events/events.svelte";
+import { ModuleEventBus } from "./event-bus.svelte";
+import type { VisualiserModule } from "./visualisers/visualiser-module.svelte";
 
 export const moduleMap: Record<string, any> = {
     "variables": VariablesModule
@@ -67,6 +67,16 @@ export class Visualiser {
     }
 
     /**
+     * Reset the visualiser to initial state.
+     * 
+     * Used to remove UI elements and reset module state when restarting a level, without needing to reload the page and lose the loaded modules.
+     */
+    reset() {
+        // Reset modules
+        this.registry.getAll().forEach(mod => mod.reset());
+    }
+
+    /**
      * Initialise the visualiser with a level, loading the modules specified in the level config and calling their init functions.
      * @param level 
      * @returns The list of module instances that were created and initialised
@@ -84,8 +94,10 @@ export class Visualiser {
         // Register modules first so they can see each other during initialisation
         instances.forEach(mod => this.registry.register(mod));
 
+        console.log("root:", this.root);
+
         // TODO: have a hierarchy being checked to ensure loaded in correct order
-        instances.forEach(mod => {
+        instances.forEach(async mod => {
             // Create a new div for each module, and call the mount function to allow them to add their UI components
             const componentInstance = mount(ModuleContainer, {
                 target: this.root!,
@@ -95,7 +107,11 @@ export class Visualiser {
             // Store the component instance for later use
             this.moduleContainers.set(mod.id, componentInstance);
 
+            await tick(); // Wait for the DOM to update before trying to access the div
             const internalDiv = componentInstance.getElement();
+
+            console.log(`Initialising module ${mod.id}`);
+            console.log(internalDiv);
 
             // Call the module's init function, passing in the div it can use to add its UI, 
             // and the registry and event bus for communication  
@@ -118,6 +134,7 @@ export class Visualiser {
      * @param history 
      */
     handleEvent(event: TraceEvent, history: TraceEvent[]) {
+        console.log("Visualiser received event");
         // Broadcast the current event to every visualiser module
         this.registry.broadcast(event, history);
     }

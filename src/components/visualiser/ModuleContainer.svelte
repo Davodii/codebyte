@@ -1,6 +1,6 @@
 <script lang="ts">
     let { id } = $props();
-    let container : HTMLDivElement;
+    let container = $state<HTMLDivElement>();
 
     export function getElement() {
         return container;

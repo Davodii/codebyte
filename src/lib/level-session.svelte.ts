@@ -1,7 +1,6 @@
-import { get } from "svelte/store";
-import type { Level } from "./data/levels/level";
-import type { Visualiser } from "./visualiser";
-import type { TraceEvent } from "./data/events/events";
+import type { Level } from "./data/levels/level.svelte";
+import type { Visualiser } from "./visualiser.svelte";
+import type { TraceEvent } from "./data/events/events.svelte";
 import { invoke } from "@tauri-apps/api/core";
 
 /**
@@ -50,6 +49,9 @@ export class LevelSession {
         this.state.currentIndex = 0;
         this.state.isPaused = false;
 
+        // Cleanup the visualiser
+        this.visualiser.reset();
+
         // Start the main loop
         try {
             await this.play();
@@ -94,6 +96,8 @@ export class LevelSession {
                 await new Promise(r => setTimeout(r, 100));
                 continue;
             }
+
+            console.log("Processing event:");
 
             const currentEvent = this.state.events[this.state.currentIndex];
             const history = this.state.events.slice(0, this.state.currentIndex + 1);

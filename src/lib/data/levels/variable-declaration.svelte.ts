@@ -1,4 +1,4 @@
-import { Level, type LevelConfig } from "./level";
+import { Level, type LevelConfig } from "./level.svelte";
 
 export class VariableDeclarationLevel extends Level {
     config: LevelConfig = {

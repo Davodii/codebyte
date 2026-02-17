@@ -4,8 +4,8 @@
     import Controls from "./components/Controls.svelte";
     import { onMount, setContext } from "svelte";
     import { LevelSession } from "$lib/level-session.svelte";
-    import { Visualiser } from "$lib/visualiser";
-    import { getLevelContstructor } from "$lib/data/levels/level-map";
+    import { Visualiser } from "$lib/visualiser.svelte";
+    import { getLevelContstructor } from "$lib/data/levels/level-map.svelte";
 
     const loadLevel = (id: string) => {
         if (!visualiser) return;
@@ -15,16 +15,39 @@
         const level = new LevelClass();
 
         session = new LevelSession(level, visualiser);
+
+        // Initalise the visualiser
+        visualiser.initLevel(session.level);
     }
 
     let session = $state<LevelSession | null>(null);
     let visualiserRoot = $state<HTMLDivElement>();
-
     let visualiser = $state<Visualiser>();
-
     let levelTree = $state<LevelTree>();
 
+    function startPlayback() {
+        if (!session) return;
+        session.start();
+    }
+
+    function stopPlayback() {
+        if (!session) return;
+        session.pause();
+    }
+
+    function pausePlayback() {
+        if (!session) return;
+        session.pause();
+    }
+
+    function changeSpeed(value: number) {
+        if (!session) return;
+        session.setPlaybackSpeed(value);
+    }
+
     onMount(() => {
+        console.log("Setup!");
+
         // Create a new visualiser
         visualiser = new Visualiser(visualiserRoot!);
 
@@ -62,10 +85,14 @@
 
         <section class="panel shadow-xl flex flex-col" style="width: 40%;">
             <div class="panel-content">
-                <Controls />
+                <Controls start={startPlayback} stop={stopPlayback} pause={pausePlayback} changeSpeed={changeSpeed}/>
+                {#if session}
                 <div id="editor-container">
                     <Editor bind:code={session!.state.code} />
                 </div>
+                {:else}
+                <div class="loading">Initialising level...</div>
+                {/if}
             </div>
         </section>
 

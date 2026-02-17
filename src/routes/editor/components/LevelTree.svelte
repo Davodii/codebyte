@@ -1,5 +1,5 @@
 <script lang="ts">
-    import levelsData from "$lib/data/level-hierarchy.json";
+    import levelsData from "$lib/data/levels/level-hierarchy.json";
 
     let { onSelect } = $props();
 
@@ -28,7 +28,9 @@
 <div class="level-hierarchy">
     <ul id="level-sections">
         {#each sections as section, i}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <li>
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
             <span 
                 class="caret" 
                 class:caret-down={section.isOpen}
@@ -38,12 +40,14 @@
             </span>
             <ul class="nested" class:active={section.isOpen}>
                 {#each section.items as item}
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                     <li
                         class="level-item"
-                        class:selected={selectedLevel === item}
-                        onclick={() => loadLevel(item)}
+                        class:selected={selectedLevel === item.id}
+                        onclick={() => loadLevel(item.id)}
                     >
-                        {item}
+                        {item.name}
                     </li>
                 {/each}
             </ul>

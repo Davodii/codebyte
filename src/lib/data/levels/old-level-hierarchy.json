@@ -1,0 +1,72 @@
+[
+    {
+        "name": "Mimble Basiscs",
+        "items": [
+            { "name": "Comments", "id": "comments" },
+            { "name": "Strings", "id": "strings" },
+            { "name": "Integers", "id": "integers" },
+            { "name": "Floats", "id": "floats" },
+            { "name": "Booleans", "id": "booleans" }
+        ]
+    },
+    {
+        "name": "Variables",
+        "items": [
+            { "name": "Declaring a Variable", "id": "declaring-a-variable" },
+            { "name": "Copying Values", "id": "copying-values" },
+            { "name": "Swapping Variables", "id": "swapping-variables" }
+        ]
+    },
+    {
+        "name": "Scopes",
+        "items": [
+            { "name": "Declaring Scopes", "id": "declaring-scopes" },
+            { "name": "Going In and Out of Scope", "id": "going-in-and-out-of-scope" },
+            { "name": "Nested Scopes", "id": "nested-scopes" }
+        ]
+    },
+    {
+        "name": "Control Flow",
+        "items": [
+            { "name": "Syntax", "id": "syntax" },
+            { "name": "Else", "id": "else" },
+            { "name": "Elif", "id": "elif" }
+        ]
+    },
+    {
+        "name": "While Loops",
+        "items": [
+            { "name": "Syntax", "id": "syntax" },
+            { "name": "Counting Up", "id": "counting-up" },
+            { "name": "Terminating Loops", "id": "terminating-loops" },
+            { "name": "Fibonacci Numbers", "id": "fibonacci-numbers" }
+        ]
+    },
+    {
+        "name": "Arrays",
+        "items": [
+            { "name": "Creating Arrays", "id": "creating-arrays" },
+            { "name": "Swapping Elements", "id": "swapping-elements" },
+            { "name": "Traversing Arrays", "id": "traversing-arrays" },
+            { "name": "Sorting", "id": "sorting" }
+        ]
+    },
+    {
+        "name": "For Loops",
+        "items": [
+            { "name": "Syntax", "id": "syntax" },
+            { "name": "Iterating Over Arrays", "id": "iterating-over-arrays" },
+            { "name": "Range Syntax", "id": "range-syntax" }
+        ]
+    },
+    {
+        "name": "Functions",
+        "items": [
+            { "name": "Defining Functions", "id": "defining-functions" },
+            { "name": "Calling Functions", "id": "calling-functions" },
+            { "name": "Returning Values", "id": "returning-values" },
+            { "name": "Arguments", "id": "arguments" },
+            { "name": "Recursion", "id": "recursion" }
+        ]
+    }
+]

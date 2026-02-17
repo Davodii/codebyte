@@ -1,5 +1,5 @@
-import type { TraceEvent } from "./data/events/events";
-import type { VisualiserModule } from "./visualisers/visualiser-module";
+import type { TraceEvent } from "./data/events/events.svelte";
+import type { VisualiserModule } from "./visualisers/visualiser-module.svelte";
 
 // Class to store all the modules that are currently loaded into the visualiser system.
 export class ModuleRegistry {

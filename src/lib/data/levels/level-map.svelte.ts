@@ -1,5 +1,5 @@
 // Map of level IDs to their corresponding level classes
-import type { Level } from "./level";
+import type { Level } from "./level.svelte";
 import { VariableDeclarationLevel } from "./variable-declaration.svelte";
 
 type LevelConstructor = new () => Level;

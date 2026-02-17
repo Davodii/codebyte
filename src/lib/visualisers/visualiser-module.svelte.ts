@@ -1,7 +1,5 @@
-import type { TraceEvent } from "$lib/data/events/events";
-import type { ModuleEventBus } from "$lib/event-bus";
-import type { VisualiserContext } from "$lib/visualiser";
-import type { ModuleRegistry } from "../module-registry";
+import type { TraceEvent } from "$lib/data/events/events.svelte";
+import type { VisualiserContext } from "$lib/visualiser.svelte";
 
 /**
  * Abstract class for all modules that can be loaded into the visualiser system.
@@ -43,4 +41,9 @@ export abstract class VisualiserModule {
      * @param deltaTime The time in milliseconds since the last update call
      */
     update?(deltaTime: number): void;
+
+    /**
+     * Reset the module to its initial state (e.g. when restarting the visualisation).
+     */
+    abstract reset(): void;
 }
