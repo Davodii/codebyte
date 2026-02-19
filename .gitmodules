@@ -1,0 +1,3 @@
+[submodule "crates/mimble"]
+	path = crates/mimble
+	url = https://github.com/Davodii/Mimble
