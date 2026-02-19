@@ -46,6 +46,7 @@ export class LevelSession {
     async start() {
         // Get the data from the backend
         this.state.events = await invoke('interpret_code', {input: this.state.code});
+        
         this.state.currentIndex = 0;
         this.state.isPaused = false;
 

@@ -16,7 +16,6 @@
 </div>
 
 <style>
-    .variable-card {
-        /* TODO: Box styling here */
-    }
+    /* .variable-card {
+    } */
 </style>

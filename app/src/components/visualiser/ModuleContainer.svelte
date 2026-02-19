@@ -13,8 +13,6 @@
     .module-container {
         height: 100%;
         width: 100%;
-        border: 1px dashed #ccc; /* For debug */
-
         /* TODO: determine child layout options */
     }
 </style>

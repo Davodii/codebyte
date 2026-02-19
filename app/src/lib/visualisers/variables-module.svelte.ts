@@ -39,7 +39,7 @@ export class VariablesModule extends VisualiserModule {
         if (event.kind !== "Init") return;
         if (event.location.kind !== "Variable") return; // Skip if not a variable declaration
 
-        const name = event.location.name;
+        const name = event.location.value;
         const data = event.value;
 
         // Initialisation of a variable
@@ -67,7 +67,7 @@ export class VariablesModule extends VisualiserModule {
         if (event.kind !== "Assign") return;  
         if (event.to.kind !== "Variable") return; // Skip if not assigning to a variable
         
-        const name = event.to.name;
+        const name = event.to.value;
         const newData = event.value;
 
         const variable = this.variables.get(name);
@@ -81,8 +81,7 @@ export class VariablesModule extends VisualiserModule {
     }
 
     handleEvent(event: TraceEvent, history: TraceEvent[]): void {
-        console.log("VariablesModule received event:");
-
+        console.log(event);
         if (event.kind === "Init") {
             this.handleInit(event);
         }

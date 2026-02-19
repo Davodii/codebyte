@@ -1,4 +1,4 @@
-export type Symbol = number;
+// export type Symbol = number;
 
 export interface TrackedValue {
     value: Value;
@@ -11,8 +11,8 @@ export type TraceEvent =
     | { kind: "Compare", left: TrackedValue, right: TrackedValue, result: boolean };
 
 export type DataSource = 
-    | { kind: "Variable", name: string }
-    | { kind: "ArraySlot", id: number, index: number }
+    | { kind: "Variable"; value: string }
+    | { kind: "ArraySlot"; value: { id: number, index: number } }
     | { kind: "Expression" }
     | { kind: "Literal" }
     | { kind: "None" };
@@ -26,16 +26,23 @@ export type Type =
     | { kind: "Nil" };
 
 export type Value = 
-    | { kind: "Integer", value: number }
-    | { kind: "Float", value: number }
-    | { kind: "String", value: string }
-    | { kind: "Boolean", value: boolean }
+    | { kind: "Integer"; value: number }
+    | { kind: "Float"; value: number }
+    | { kind: "String"; value: string }
+    | { kind: "Boolean"; value: boolean }
+    | { kind: "Function", func_type: FunctionType }
     | { kind: "Nil" }
-    | { kind: "Array", id: number, elements: TrackedValue[], element_type: Type }
-    | { kind: "Function", func_type: FunctionType };
+    | { 
+        kind: "Array";
+        value: {
+            id: number;
+            elements: TrackedValue[];
+            element_type: Type
+        }
+};
 
 export type FunctionType = 
-    | { kind: "Native", name: string };
+    | { kind: "Native", value: { name: string } };
 
 
 // export type Symbol = number;
