@@ -54,6 +54,14 @@ export class Visualiser {
         this.root = container;
     }
 
+    get moduleRegistry() {
+        return this.registry;
+    }
+
+    get eventBus() {
+        return this.bus;
+    }
+
     /**
      * Cleanup the visualiser by destroying all loaded modules and removing their UI components from the DOM.
      */
@@ -86,15 +94,13 @@ export class Visualiser {
         this.cleanup();
     
         // Initiate modules
-        const instances = level.config.modules.map(name => {
+        const instances = level.modules.map(name => {
             const Ctor = getModuleClass(name);
             return new Ctor();
         });
 
         // Register modules first so they can see each other during initialisation
         instances.forEach(mod => this.registry.register(mod));
-
-        console.log("root:", this.root);
 
         // TODO: have a hierarchy being checked to ensure loaded in correct order
         instances.forEach(async mod => {

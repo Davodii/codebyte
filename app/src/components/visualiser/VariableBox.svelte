@@ -16,6 +16,7 @@
 </div>
 
 <style>
-    /* .variable-card {
-    } */
+    .variable-card {
+        width: 200px;
+    }
 </style>

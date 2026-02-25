@@ -6,6 +6,10 @@
     import { LevelSession } from "$lib/level-session.svelte";
     import { Visualiser } from "$lib/visualiser.svelte";
     import { getLevelContstructor } from "$lib/data/levels/level-map.svelte";
+    import ObjectivePlanel from "./components/ObjectivePlanel.svelte";
+
+    import { popupManager } from "$lib/popup-store.svelte";
+    import Popup from "./components/Popup.svelte";
 
     const loadLevel = (id: string) => {
         if (!visualiser) return;
@@ -16,8 +20,7 @@
 
         session = new LevelSession(level, visualiser);
 
-        // Initalise the visualiser
-        visualiser.initLevel(session.level);
+        session.init();
     }
 
     let session = $state<LevelSession | null>(null);
@@ -46,8 +49,6 @@
     }
 
     onMount(() => {
-        console.log("Setup!");
-
         // Create a new visualiser
         visualiser = new Visualiser(visualiserRoot!);
 
@@ -68,17 +69,27 @@
 </script>
 
 <div class="layout">
+    <!-- Popups -->
+     {#each $popupManager as popup (popup.id)}
+        <Popup {popup} />
+     {/each}
+
     <nav class="nav-bar">
         <LevelTree onSelect={loadLevel} bind:this={levelTree} />
     </nav>
 
     <main class="panel-container">
         <section class="panel shadow-xl" style="width: 30%;">
-            <h1>Objective</h1>
+            {#if session}
+            <ObjectivePlanel name={session.level.title} description={session.level.description} objectives={[]}/>
+            {:else}
+            <h1>Level Title</h1>
             <hr>
             <div class="panel-content">
-                <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quisquam, perferendis minima! Sed quae reiciendis blanditiis soluta exercitationem, perferendis, debitis, id earum beatae aliquid ipsam tempora quia ea laudantium. Est, sapiente.</p>
+                <p>Level Description</p>
+                <hr>
             </div>
+            {/if}
         </section>
 
         <div class="splitter"></div>

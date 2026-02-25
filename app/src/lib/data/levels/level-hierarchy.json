@@ -1,6 +1,6 @@
 [
     {
-        "name": "AAA",
+        "name": "Variables",
         "items": [
             { "name": "Declaring a Variable", "id": "variable-declaration"}
         ]

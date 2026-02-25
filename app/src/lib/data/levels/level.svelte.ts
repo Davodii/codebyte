@@ -1,15 +1,31 @@
-// Data structure for level configuration
-export interface LevelConfig {
-    id: string;             // unique id
-    title: string;          // title of the level
-    objective: string;      // description of the objective
-    initialCode: string;    // code the user sees when the level loads
-    modules: string[];      // list of module names to be loaded for this level
+import type { Visualiser } from "$lib/visualiser.svelte";
+import type { TraceEvent } from "../events/events.svelte";
+
+export interface Milestone {
+    id: string;
+    description: string;
+    complete: boolean;
 }
 
+/**
+ * Base class for levels. Each level should extend this class and implement the init function to set up the level.
+ */
 export abstract class Level {
-    abstract config: LevelConfig;
+    id: string = "";
+    title: string = "";
+    initialCode: string = "";
+    description: string = "";
+    modules: string[] = [];
+    milestones = $state<Milestone[]>([]);
 
-    // TODO: give the current context to allow level to attach listeners to event bus, or directly manipulate modules
-    abstract init() : void;
+    /**
+     * Check if the level is complete by checking if all milestones are complete.
+     */
+    get isComplete() {
+        return this.milestones.length > 0 && this.milestones.every(m => m.complete);
+    }
+
+    abstract init(visualiser: Visualiser) : void;
+
+    abstract handleEvent(event: TraceEvent, history: any) : void;
 }

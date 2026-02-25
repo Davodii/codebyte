@@ -2,6 +2,7 @@ import type { Level } from "./data/levels/level.svelte";
 import type { Visualiser } from "./visualiser.svelte";
 import type { TraceEvent } from "./data/events/events.svelte";
 import { invoke } from "@tauri-apps/api/core";
+import { popupManager } from "./popup-store.svelte";
 
 /**
  * Class to manage a level session, including loading the level, managing the visualiser, and processing events.
@@ -32,10 +33,10 @@ export class LevelSession {
         this.visualiser.initLevel(this.level);
 
         // Initialise the level
-        this.level.init();
+        this.level.init(this.visualiser);
 
         // Move code into the state
-        this.state.code = this.level.config.initialCode;
+        this.state.code = this.level.initialCode;
     }
 
     /**
@@ -102,9 +103,13 @@ export class LevelSession {
             const history = this.state.events.slice(0, this.state.currentIndex + 1);
 
             // HEART OF THE SYSTEM: 
+
             // The session tells the visualiser to update ALL modules for THIS event
             this.visualiser.handleEvent(currentEvent, history);
             this.state.currentIndex++;
+
+            // Tell the level that an event has been processed, so it can update its state if needed (e.g. for win conditions)
+            this.level.handleEvent(currentEvent, history);
 
             // Wait for a bit before processing the next event, to control playback speed
             await new Promise(r => setTimeout(r, this.state.playbackSpeed));

@@ -2,6 +2,17 @@
  * Types for events emitted by modules to communicate with each other and the visualiser.
  */
 export enum ModuleEventType {
+    // General execution events  
+    EXECUTION_STARTED = "EXECUTION_STARTED",
+    EXECUTION_PAUSED = "EXECUTION_PAUSED",
+    EXECUTION_RESUMED = "EXECUTION_RESUMED",
+    EXECUTION_ENDED = "EXECUTION_ENDED",
+
+    // Popups
+    POPUP_SHOWN = "POPUP_SHOWN",
+    POPUP_CLOSED = "POPUP_CLOSED",
+
+    // Variable events
     VARIABLE_DECLARED = "VARIABLE_DECLARED",
     VARIABLE_CHANGED = "VARIABLE_CHANGED",
 }
@@ -12,6 +23,21 @@ export enum ModuleEventType {
  * This is used to type the event bus and ensure that modules emit the correct payload for each event type.
  */
 export interface ModuleEventMap {
+    // General execution events
+    [ModuleEventType.EXECUTION_STARTED]: void;
+    [ModuleEventType.EXECUTION_PAUSED]: void;
+    [ModuleEventType.EXECUTION_RESUMED]: void;
+    [ModuleEventType.EXECUTION_ENDED]: void;
+    
+    // Popups
+    [ModuleEventType.POPUP_SHOWN]: {
+        title: string;
+        content: string;
+        // TODO: some way to link to the DOM?
+    };
+    [ModuleEventType.POPUP_CLOSED]: void;
+
+    // Variables
     [ModuleEventType.VARIABLE_DECLARED]: {
         name: string;
         data: any;
@@ -62,6 +88,9 @@ export class ModuleEventBus {
         event: K, 
         payload: ModuleEventMap[K]
     ) {
+        console.log(`Emitting event ${event} with payload`, payload);
         this.listeners[event]?.forEach(callback => callback(payload));
     }
+
+    // TODO: provide a way to unsubscribe from events!!!
 }

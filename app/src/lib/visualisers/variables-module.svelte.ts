@@ -9,7 +9,10 @@ export type Variable = {
     data: any;
 }
 
-type VariableBoxInstance = ReturnType<typeof mount>;
+type MountedVariable = {
+    instance: Record<string, any>;
+    wrapper: HTMLElement;
+}
 
 export class VariablesModule extends VisualiserModule {
     // Need to store:
@@ -28,7 +31,16 @@ export class VariablesModule extends VisualiserModule {
     private variables = $state(new Map<string, Variable>());
 
     // Current DOM elements
-    private activeComponents = new Map<string, VariableBoxInstance>();
+    private activeComponents = new Map<string, MountedVariable>();
+
+    public getVariableDomElement(name: string): HTMLElement | null {
+        const mountedVar = this.activeComponents.get(name);
+
+        if (!mountedVar) return null;
+
+        // Return the wrapper div
+        return mountedVar.wrapper;
+    }
 
     private getRandomVibrantColor(lightness: number = 60): string {
         const hue = Math.floor(Math.random() * 360); // 0 to 360 degrees
@@ -44,20 +56,24 @@ export class VariablesModule extends VisualiserModule {
 
         // Initialisation of a variable
         const variable : Variable = { name, data };
-
-        // Store data in the map
         this.variables.set(name, variable);
 
-        console.log("Moutning new variable box");
+        // Create a dedicated wrapper div
+        const wrapper = document.createElement("div");
+        wrapper.id = `var-wrapper-${name}`;
+
+        // Append to main container
+        this.container!.appendChild(wrapper);
+
         const instance = mount(VariableBox, {
-            target: this.container!,
+            target: wrapper,
             props: { 
                 variable: variable,
                 colour: this.getRandomVibrantColor() // TODO: remove this in the future
             }
         });
 
-        this.activeComponents.set(name, instance);
+        this.activeComponents.set(name, {instance, wrapper});
 
         // Emit event to the event bus
         this.ctx?.bus.emit(ModuleEventType.VARIABLE_DECLARED, variable);
@@ -107,7 +123,10 @@ export class VariablesModule extends VisualiserModule {
 
     reset(): void {
         // Remove all variables from the UI and clear the map
-        this.activeComponents.forEach(instance => unmount(instance));
+        this.activeComponents.forEach(({instance, wrapper}) => {
+            unmount(instance);
+            wrapper.remove(); // Remove the wrapper element from the DOM
+        });
         this.activeComponents.clear();
         this.variables.clear();
     }
