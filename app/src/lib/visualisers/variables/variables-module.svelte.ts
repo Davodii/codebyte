@@ -1,4 +1,4 @@
-import type { TraceEvent } from "$lib/data/events/events.svelte";
+import type { TraceEvent, TrackedValue } from "$lib/data/events/events.svelte";
 import { mount, unmount, type Component } from "svelte";
 import VariableBox from "../../components/visualiser/VariableBox.svelte";
 import { VisualiserModule } from "./visualiser-module.svelte";
@@ -6,7 +6,7 @@ import { ModuleEventType } from "$lib/event-bus.svelte";
 
 export type Variable = {
     name: string;
-    data: any;
+    data: TrackedValue;
 }
 
 type MountedVariable = {
@@ -107,16 +107,15 @@ export class VariablesModule extends VisualiserModule {
     }
 
     destroy(): void {
-        // Cleanup the UI
-        this.activeComponents.forEach(instance => unmount(instance));
-        this.activeComponents.clear();
+        this.reset(); // Reset will clean up the UI and clear variables
     }
 
     private removeVariable(name: string) {
         const instance = this.activeComponents.get(name);
         if (!instance) return;
 
-        unmount(instance);
+        unmount(instance.instance);
+        instance.wrapper.remove();
         this.activeComponents.delete(name);
         this.variables.delete(name);
     }

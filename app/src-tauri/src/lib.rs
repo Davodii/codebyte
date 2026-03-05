@@ -9,7 +9,7 @@ fn interpret_code(input: String) -> Result<Vec<mimble::tracer::TraceEvent>, Stri
     // Create the interpreter
     let mut interpreter = mimble::Interpreter::new();
 
-        // Create the tracer
+    // Create the tracer
     let tracer = mimble::tracer::TraceCollector::new();
     interpreter.set_tracer(Box::new(tracer));
 

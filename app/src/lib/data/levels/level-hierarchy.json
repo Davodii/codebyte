@@ -1,8 +1,10 @@
 [
     {
-        "name": "Variables",
+        "name": "Levels",
         "items": [
-            { "name": "Declaring a Variable", "id": "variable-declaration"}
+            { "name": "Declaring a Variable", "id": "variable-declaration" },
+            { "name": "Array Sorting", "id": "array-sorting" },
+            { "name": "Fibonacci Numbers", "id": "fibonacci-numbers" }
         ]
     }
 ]

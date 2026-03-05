@@ -20,6 +20,12 @@
     let editorDiv: HTMLDivElement;
     let view: EditorView;
 
+    export function clear() {
+        view.dispatch({
+            changes: { from: 0, to: view.state.doc.length, insert: ""}
+        });
+    }
+
     // React to external changes
     // This effect runs whenever the 'code' prop changes from the outside
     $effect(() => {

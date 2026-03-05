@@ -24,7 +24,7 @@ export class LevelSession {
     });
 
     constructor(level: Level, visualiser: Visualiser) {
-        this.level = level;
+        this.level = $state(level);
         this.visualiser = visualiser;
     }
 

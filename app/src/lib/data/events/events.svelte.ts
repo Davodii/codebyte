@@ -1,4 +1,31 @@
-// export type Symbol = number;
+
+export function valueToString(val: Value): string {
+    switch (val.kind) {
+        case "Integer":
+        case "Float":
+        case "String":
+        case "Boolean":
+            return String(val.value);
+        case "Nil":
+            return "nil";
+        case "Function":
+            return `[Function: ${val.func_type.value.name}]`;
+        case "Array":
+            // Recursive call for array elements
+            const elements = val.value.elements
+                .map(ev => valueToString(ev.value))
+                .join(", ");
+            return `[${elements}]`;
+        default:
+            // This ensures exhaustive checking
+            const _exhaustiveCheck: never = val;
+            return "Unknown";
+    }
+}
+
+export function trackedValueToString(tv: TrackedValue): string {
+    return valueToString(tv.value);
+}
 
 export interface TrackedValue {
     value: Value;

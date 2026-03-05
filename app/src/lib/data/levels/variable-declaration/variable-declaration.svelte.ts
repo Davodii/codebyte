@@ -2,7 +2,8 @@ import { ModuleEventType } from "$lib/event-bus.svelte";
 import { popupManager } from "$lib/popup-store.svelte";
 import type { Visualiser } from "$lib/visualiser.svelte";
 import type { VariablesModule } from "$lib/visualisers/variables-module.svelte";
-import type { TraceEvent } from "../events/events.svelte";
+import VariableLevel from "../../../components/descriptions/VariableLevelDescription.svelte";
+import type { TraceEvent } from "$lib/data/events/events.svelte";
 import { Level } from "./level.svelte";
 
 export class VariableDeclarationLevel extends Level {
@@ -15,7 +16,7 @@ export class VariableDeclarationLevel extends Level {
         this.id = "variable-declaration";
         this.title = "Variable Declaration";
         this.initialCode = `# Here is a variable named 'x' being declared and assigned the value 5\nlet x = 5\n`;
-        this.description = "In this level, you'll learn how to declare variables and assign values to them. Variables are like containers that hold data. You can create a variable using the 'let' keyword, followed by the variable name, an equals sign, and the value you want to assign to it.";
+        this.description = VariableLevel;
         // TODO: provide some way to embed HTML? for things like images and links
         this.modules = ["variables"];
     }
@@ -24,21 +25,16 @@ export class VariableDeclarationLevel extends Level {
         this.visualiser = visualiser;
 
         this.milestones = [
-            { id: "run-code", description: "Run the code to see the variable declaration in action.", complete: false },
-            { id: "declare-variable", description: "Declare a new variable named and assign it a value.", complete: false },
+            { id: "run-code", description: "Run the code to see the variable declaration in action.", completed: false },
+            { id: "declare-variable", description: "Declare a new variable named and assign it a value.", completed: false },
         ];
 
         // TODO: 
         // - [x] load modules (handled in level session)
 
-        // - [ ] attach listeners to the event bus
-
+        // - [~] attach listeners to the event bus
         // Attaching a listener to the VARIABLE_DECLARED event to check when the user declares a variable and update the milestones accordingly
         visualiser.eventBus.on(ModuleEventType.VARIABLE_DECLARED, this.handleVariableDeclared.bind(this));
-
-        // - [ ] update the text in the sidebar to initial state
-        // - [ ] update the current objective to be run
-        // - [ ] set the initial code to use the code above
     }
 
     handleEvent(event: TraceEvent, history: any): void {
@@ -53,8 +49,8 @@ export class VariableDeclarationLevel extends Level {
         // Check the name of the variable declared and update the current step accordingly
         if (payload.name === "x") {
             const milestone = this.milestones.find(m => m.id === "run-code");
-            if (milestone && !milestone.complete) {
-                milestone.complete = true;
+            if (milestone && !milestone.completed) {
+                milestone.completed = true;
 
                 const variableModule = this.visualiser.moduleRegistry.get<VariablesModule>("variables");
                 if (!variableModule) {
@@ -79,8 +75,8 @@ export class VariableDeclarationLevel extends Level {
             // Check the previous milestone is also complete
             const runMilestone = this.milestones.find(m => m.id === "run-code");
             const milestone = this.milestones.find(m => m.id === "declare-variable");
-            if (runMilestone && runMilestone.complete && milestone && !milestone.complete) {
-                milestone.complete = true;
+            if (runMilestone && runMilestone.completed && milestone && !milestone.completed) {
+                milestone.completed = true;
 
                 const variableModule = this.visualiser.moduleRegistry.get<VariablesModule>("variables");
                 if (!variableModule) {

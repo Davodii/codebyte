@@ -11,9 +11,15 @@
     import { popupManager } from "$lib/popup-store.svelte";
     import Popup from "./components/Popup.svelte";
 
+    let session = $state<LevelSession | null>(null);
+    let visualiserRoot = $state<HTMLDivElement>();
+    let editor = $state<Editor>();
+    let visualiser = $state<Visualiser>();
+    let levelTree = $state<LevelTree>();
+
     const loadLevel = (id: string) => {
         if (!visualiser) return;
-
+        
         // Instantiate the level
         const LevelClass = getLevelContstructor(id);
         const level = new LevelClass();
@@ -22,11 +28,6 @@
 
         session.init();
     }
-
-    let session = $state<LevelSession | null>(null);
-    let visualiserRoot = $state<HTMLDivElement>();
-    let visualiser = $state<Visualiser>();
-    let levelTree = $state<LevelTree>();
 
     function startPlayback() {
         if (!session) return;
@@ -74,21 +75,23 @@
         <Popup {popup} />
      {/each}
 
+    <!-- Level select navbar -->
     <nav class="nav-bar">
         <LevelTree onSelect={loadLevel} bind:this={levelTree} />
     </nav>
 
+    <!-- Main panels -->
     <main class="panel-container">
         <section class="panel shadow-xl" style="width: 30%;">
             {#if session}
-            <ObjectivePlanel name={session.level.title} description={session.level.description} objectives={[]}/>
+                <ObjectivePlanel level={session.level} />
             {:else}
-            <h1>Level Title</h1>
-            <hr>
-            <div class="panel-content">
-                <p>Level Description</p>
+                <h1>Level Title</h1>
                 <hr>
-            </div>
+                <div class="panel-content">
+                    <p>Level Description</p>
+                    <hr>
+                </div>
             {/if}
         </section>
 
@@ -99,7 +102,7 @@
                 <Controls start={startPlayback} stop={stopPlayback} pause={pausePlayback} changeSpeed={changeSpeed}/>
                 {#if session}
                 <div id="editor-container">
-                    <Editor bind:code={session!.state.code} />
+                    <Editor bind:this={editor} bind:code={session!.state.code} />
                 </div>
                 {:else}
                 <div class="loading">Initialising level...</div>
@@ -166,9 +169,5 @@
 
     .col-resize-cursor {
         cursor: col-resize;
-    }
-
-    .visualiser-canvas {
-        background-color: aquamarine; /* Testing purposes */
     }
 </style>
