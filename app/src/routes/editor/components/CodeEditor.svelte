@@ -7,17 +7,18 @@
     import { indentWithTab, history, defaultKeymap, historyKeymap } from '@codemirror/commands';
     import { foldGutter, indentOnInput, indentUnit, bracketMatching, foldKeymap, syntaxHighlighting, defaultHighlightStyle} from '@codemirror/language';
     import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
-    import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap} from '@codemirror/view';
+    import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, rectangularSelection, crosshairCursor, highlightActiveLine, keymap} from '@codemirror/view';
 
     // Theme
     import { oneDark } from "@codemirror/theme-one-dark";
     
     // Language
     import { javascript } from '@codemirror/lang-javascript';
+    import { settings } from '$lib/settings.svelte';
 
     let { code = $bindable() } = $props<{ code: string }>();
 
-    let editorDiv: HTMLDivElement;
+    let container: HTMLDivElement;
     let view: EditorView;
 
     export function clear() {
@@ -25,6 +26,48 @@
             changes: { from: 0, to: view.state.doc.length, insert: ""}
         });
     }
+
+    let extensions = [
+        basicSetup,
+        lineNumbers(),
+        highlightActiveLineGutter(),
+        highlightSpecialChars(),
+        history(),
+        // foldGutter(),
+        drawSelection(),
+        indentUnit.of('\t'),
+        EditorState.allowMultipleSelections.of(true),
+        indentOnInput(),
+        bracketMatching(),
+        closeBrackets(),
+        autocompletion(),
+        
+        // These go together
+        rectangularSelection(),
+        crosshairCursor(),
+
+        highlightActiveLine(),
+        highlightSelectionMatches(),
+        keymap.of([
+            indentWithTab,
+            ...closeBracketsKeymap,
+            ...defaultKeymap,
+            ...historyKeymap,
+            ...foldKeymap,
+            ...completionKeymap,
+        ]),
+
+        // Language
+        javascript(),
+        syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+
+        // React to internal changes
+        EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+                code = update.state.doc.toString();
+            }
+        })
+    ];
 
     // React to external changes
     // This effect runs whenever the 'code' prop changes from the outside
@@ -37,83 +80,45 @@
     });
 
     onMount(() => {
-        let extensions = [
-            basicSetup,
-            lineNumbers(),
-            highlightActiveLineGutter(),
-            highlightSpecialChars(),
-            history(),
-            // foldGutter(),
-            drawSelection(),
-            indentUnit.of('\t'),
-            EditorState.allowMultipleSelections.of(true),
-            indentOnInput(),
-            bracketMatching(),
-            closeBrackets(),
-            autocompletion(),
-            
-            // These go together
-            rectangularSelection(),
-            crosshairCursor(),
+        const shadow = container.attachShadow({ mode: 'open' });
+        const style = document.createElement('style');
+        style.textContent = `
+            :host { display: block; height: 100%; width: 100%; }
+            .cm-editor { height: 100%; width: 100%; }
+            .cm-scroller { overflow: auto; }
+            .internal-wrapper { height: 100%; width: 100%; }
+        `;
+        shadow.appendChild(style);
 
-            highlightActiveLine(),
-            highlightSelectionMatches(),
-            keymap.of([
-                indentWithTab,
-                ...closeBracketsKeymap,
-                ...defaultKeymap,
-                ...historyKeymap,
-                ...foldKeymap,
-                ...completionKeymap,
-            ]),
+        // Create a wrapper div for the CodeMirror editor
+        const editorHost = document.createElement('div');
+        editorHost.classList.add('internal-wrapper');
+        shadow.appendChild(editorHost);
 
-            // Language
-            javascript(),
-            syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
-
-            // Theme
-            // oneDark,
-
-            // React to internal changes
-            EditorView.updateListener.of((update) => {
-                if (update.docChanged) {
-                    code = update.state.doc.toString();
-                }
-            })
-        ];
-
-        const startState = EditorState.create({
-            doc: code,
-            extensions: [
-                extensions,
-            ]
-        });
+        // Update the theme if any
+        if (settings.value.theme === 'dark') {
+            extensions.push(oneDark);
+            console.log(extensions);
+        }
 
         view = new EditorView({
-            state: startState,
-            parent: editorDiv,
+            state: EditorState.create({
+                doc: code,
+                extensions: [
+                    extensions,
+                ]
+            }),
+            parent: editorHost,
         });
 
         return () => view.destroy();
     });
 </script>
 
-<div class="editor" bind:this={editorDiv}></div>
+<div class="editor-external-wrapper" bind:this={container}></div>
 
 <style>
-    .editor {
-        flex-grow: 1;
-        min-height: 0;
-        overflow: hidden;
-        height: 100%;
-    }
-
-    :global(.cm-editor) {
-        height: 100%;
-        width: 100%;
-    }
-
-    :global(.cm-scroller) {
-        overflow:auto;
+    .editor-external-wrapper {
+        display: block;
     }
 </style>

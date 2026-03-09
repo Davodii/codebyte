@@ -1,6 +1,6 @@
 import type { Visualiser } from "$lib/visualiser.svelte";
-import type { TraceEvent } from "../events/events.svelte";
-import { Level } from "./level.svelte";
+import type { TraceEvent } from "../../events/events.svelte";
+import { Level } from "../level.svelte";
 
 export class ArraySortingLevel extends Level {
     constructor() {

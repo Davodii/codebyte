@@ -1,26 +1,83 @@
 <script lang="ts">
-    let { stop, start, pause, changeSpeed} = $props();
-
-    let speed = $state(0);
+    let { stop, start, pause, changeSpeed } = $props();
+    let speed = $state(100);
+    // Icons: Using SVG inline for simplicity
+    const icons = {
+        start: `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>`,
+        stop: `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>`,
+        pause: `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+    };
 </script>
 
 <div class="controls">
-    <button class="bg-(--accent-secondary)" onclick={stop}>Stop</button>   
-    <button class="secondary" onclick={start}>Start</button>
-    <button class="secondary" onclick={pause}>Pause</button>
-    <input type="range" bind:value={speed} onchange={() => {changeSpeed(speed)}} max="300" min="50" step="25"/>
+    <button class="control-button start" id="start" onclick={start} style="background: #d1f7c4;">
+        {@html icons.start}
+        <span>Start</span>
+    </button>
+    <button class="control-button stop" id="stop" onclick={stop} style="background: #ffd1d1;">
+        {@html icons.stop}
+        <span>Stop</span>
+    </button>
+    <button class="control-button pause" id="pause" onclick={pause} style="background: #e0e0e0;">
+        {@html icons.pause}
+        <span>Pause</span>
+    </button>
+    <div class="speed-control">
+        <label for="speed-slider">Speed:</label>
+        <input id="speed-slider" type="range" bind:value={speed} onchange={() => {changeSpeed(speed)}} max="300" min="50" step="25"/>
+        <span class="speed-indicator" style="color: {speed < 100 ? '#f00' : speed < 200 ? '#fa0' : '#0a0'}; font-weight: bold; margin-left: 8px;">
+            {speed} ms
+        </span>
+    </div>
 </div>
 
 <style>
-    button {
-        padding: 5px;
-        color: #000;
-        border-radius: 4px;
-    }
-
     .controls {
         margin-bottom: 10px;
         margin-top: 10px;
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .control-button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .control-button.start {
+        color: #1a7f2e;
+        background: #d1f7c4;
+    }
+    .control-button.stop {
+        color: #b30000;
+        background: #ffd1d1;
+    }
+    .control-button.pause {
+        color: #555;
+        background: #e0e0e0;
+    }
+    .control-button:hover {
+        filter: brightness(0.95);
+    }
+    .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    #speed-slider {
+        width: 120px;
+    }
+    .speed-indicator {
+        min-width: 48px;
+        text-align: center;
+        font-size: 1rem;
     }
 </style>

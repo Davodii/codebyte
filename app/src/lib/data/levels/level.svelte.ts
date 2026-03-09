@@ -16,6 +16,7 @@ export abstract class Level {
     title: string = "";
     initialCode: string = "";
     description: Component | null = null;
+    visualisationName: string = "";
     modules: string[] = [];
     milestones : Milestone[] = [];
 

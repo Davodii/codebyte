@@ -113,6 +113,7 @@
         <div class="splitter"></div>
 
         <section class="panel shadow-xl" style="width: 30%;">
+            <h1>{session?.level.visualisationName || "Visualiser"}</h1>
             <div class="visualiser-canvas" bind:this={visualiserRoot}></div>
         </section>
     </main>
@@ -122,7 +123,7 @@
     .layout {
         display:flex;
         flex-direction: row;
-        height: 100vh;
+        height: 100%;
     }
 
     #nav-bar {
@@ -147,7 +148,7 @@
         padding: 20px;
         min-height: 0;
         overflow: auto;
-        
+        background-color: var(--bg-color);
     }
 
     .panel-content {

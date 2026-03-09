@@ -1,10 +1,10 @@
 import { ModuleEventType } from "$lib/event-bus.svelte";
 import { popupManager } from "$lib/popup-store.svelte";
 import type { Visualiser } from "$lib/visualiser.svelte";
-import type { VariablesModule } from "$lib/visualisers/variables-module.svelte";
-import VariableLevel from "../../../components/descriptions/VariableLevelDescription.svelte";
+import type { VariablesModule } from "$lib/visualisers/variables/variables-module.svelte";
+import VariableLevel from "./VariableLevelDescription.svelte";
 import type { TraceEvent } from "$lib/data/events/events.svelte";
-import { Level } from "./level.svelte";
+import { Level } from "../level.svelte";
 
 export class VariableDeclarationLevel extends Level {
     visualiser: Visualiser | null = null;
@@ -17,7 +17,7 @@ export class VariableDeclarationLevel extends Level {
         this.title = "Variable Declaration";
         this.initialCode = `# Here is a variable named 'x' being declared and assigned the value 5\nlet x = 5\n`;
         this.description = VariableLevel;
-        // TODO: provide some way to embed HTML? for things like images and links
+        this.visualisationName = "Variables";
         this.modules = ["variables"];
     }
 

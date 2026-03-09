@@ -2,7 +2,7 @@ import { mount, tick, unmount } from "svelte";
 import { ModuleRegistry } from "./module-registry.svelte";
 import ModuleContainer from "../components/visualiser/ModuleContainer.svelte";
 import type { Level } from "./data/levels/level.svelte";
-import { VariablesModule } from "./visualisers/variables-module.svelte";
+import { VariablesModule } from "./visualisers/variables/variables-module.svelte";
 import type { TraceEvent } from "./data/events/events.svelte";
 import { ModuleEventBus } from "./event-bus.svelte";
 import type { VisualiserModule } from "./visualisers/visualiser-module.svelte";
