@@ -29,10 +29,6 @@ export class VariableDeclarationLevel extends Level {
             { id: "declare-variable", description: "Declare a new variable named and assign it a value.", completed: false },
         ];
 
-        // TODO: 
-        // - [x] load modules (handled in level session)
-
-        // - [~] attach listeners to the event bus
         // Attaching a listener to the VARIABLE_DECLARED event to check when the user declares a variable and update the milestones accordingly
         visualiser.eventBus.on(ModuleEventType.VARIABLE_DECLARED, this.handleVariableDeclared.bind(this));
     }
@@ -62,7 +58,6 @@ export class VariableDeclarationLevel extends Level {
 
                 console.log("Variable element:", variableElement);
 
-                // TODO: show a popup to the new variable
                 popupManager.showPopup({
                     text: `Look! A box has appeared with for the variable 'x'. Now you can move onto the next milestone.`,
                     target: variableElement

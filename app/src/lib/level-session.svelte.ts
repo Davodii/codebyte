@@ -17,9 +17,6 @@ export class LevelSession {
         isPaused: true,
         playbackSpeed: 200,
         currentLevelId: "",
-        // TODO: the code lives in the CodeEditor component, but we 
-        // need it here to send to the backend. 
-        // Maybe move it here and pass it down as a prop?
         code: "",
     });
 

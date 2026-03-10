@@ -48,8 +48,6 @@ export class Visualiser {
     // functions on them later if needed (e.g. to update their UI)
     private moduleContainers = new Map<string, ModuleContainerInstance>();
 
-    // TODO: provide a way for modules to access certain divs?
-
     constructor(container: HTMLDivElement) {
         this.root = container;
     }

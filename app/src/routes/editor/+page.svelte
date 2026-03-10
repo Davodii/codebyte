@@ -17,6 +17,48 @@
     let visualiser = $state<Visualiser>();
     let levelTree = $state<LevelTree>();
 
+    // --- Draggable splitter state ---
+    let panelContainer = $state<HTMLElement>();
+    let leftWidth = $state<number>(300);
+    let rightWidth = $state<number>(300);
+    let isDraggingLeft = $state<boolean>(false);
+    let isDraggingRight = $state<boolean>(false);
+
+    const panelPadding = 20;
+
+    function startDraggingLeft() { 
+        isDraggingLeft = true; 
+        document.body.classList.add('dragging');
+    }
+    function startDraggingRight() { 
+        isDraggingRight = true; 
+        document.body.classList.add('dragging');
+    }
+
+    function handleGlobalMouseMove(event: MouseEvent) {
+        if (!panelContainer) return;
+        const containerRect = panelContainer.getBoundingClientRect();
+        const resizerWidth = 4;
+        const offset = (resizerWidth / 2) + 2 * panelPadding;
+
+        if (isDraggingLeft) {
+            // Calculate new width from left edge of container
+            const newLeftWidth = (event.clientX - containerRect.left) - offset;
+            leftWidth = Math.max(100, Math.min(newLeftWidth, containerRect.width * 0.4));
+        }
+
+        if (isDraggingRight) {
+            // Calculate new width from right edge of container
+            const newRightWidth = (containerRect.right - event.clientX) - offset;
+            rightWidth = Math.max(100, Math.min(newRightWidth, containerRect.width * 0.4));
+        }
+    }
+
+    function stopDragging() {
+        isDraggingLeft = false;
+        isDraggingRight = false;
+    }
+
     const loadLevel = (id: string) => {
         if (!visualiser) return;
         
@@ -49,6 +91,7 @@
         session.setPlaybackSpeed(value);
     }
 
+    // Visualiser setup and level loading
     onMount(() => {
         // Create a new visualiser
         visualiser = new Visualiser(visualiserRoot!);
@@ -69,6 +112,14 @@
     });
 </script>
 
+<svelte:window 
+    onmousemove={handleGlobalMouseMove} 
+    onmouseup={() => {
+        stopDragging();
+        document.body.classList.remove('dragging');
+    }} 
+/>
+
 <div class="layout">
     <!-- Popups -->
      {#each $popupManager as popup (popup.id)}
@@ -81,8 +132,8 @@
     </nav>
 
     <!-- Main panels -->
-    <main class="panel-container">
-        <section class="panel shadow-xl" style="width: 30%;">
+    <main class="panel-container" bind:this={panelContainer}>
+        <section class="panel" style="flex: 0 0 {leftWidth}px; padding: {panelPadding}px;">
             {#if session}
                 <ObjectivePlanel level={session.level} />
             {:else}
@@ -95,9 +146,16 @@
             {/if}
         </section>
 
-        <div class="splitter"></div>
+        <button 
+            onmousedown={startDraggingLeft}
+            class="resizer"
+            class:active="{isDraggingLeft}"
+            aria-label="Resize left panel"
+        ></button>
 
-        <section class="panel shadow-xl flex flex-col" style="width: 40%;">
+        <section class="panel middle-panel" style="padding: {panelPadding}px;">
+            <h1>Code Editor</h1>
+            <hr>
             <div class="panel-content">
                 <Controls start={startPlayback} stop={stopPlayback} pause={pausePlayback} changeSpeed={changeSpeed}/>
                 {#if session}
@@ -110,45 +168,54 @@
             </div>
         </section>
 
-        <div class="splitter"></div>
+        <button 
+            onmousedown={startDraggingRight}
+            class="resizer"
+            class:active="{isDraggingRight}"
+            aria-label="Resize right panel"
+        ></button>
 
-        <section class="panel shadow-xl" style="width: 30%;">
+        <section class="panel" style="flex: 0 0 {rightWidth}px; padding: {panelPadding}px;">
             <h1>{session?.level.visualisationName || "Visualiser"}</h1>
+            <hr>
             <div class="visualiser-canvas" bind:this={visualiserRoot}></div>
         </section>
     </main>
 </div>
 
 <style>
+    :global(body.dragging) {
+        user-select: none;
+        cursor: ew-resize;
+    }
+
     .layout {
         display:flex;
         flex-direction: row;
         height: 100%;
     }
 
-    #nav-bar {
-        min-width: 300px;
-        overflow: scroll;
+    .nav-bar {
+        background-color: var(--bg-color);
+        border-right: 1px solid var(--accent-primary);
     }
 
-
-    .content {
-        display: flex;
-        flex-direction: column;
-    }
     .panel-container {
         flex-grow: 1;
         display: flex;
-        padding: 20px;
+        padding: 0;
         margin: 0;
-        min-height: 0;
+        overflow: hidden;
     }
 
     .panel {
-        padding: 20px;
-        min-height: 0;
         overflow: auto;
         background-color: var(--bg-color);
+        min-width: 0; /* Allow panels to shrink below their content width */
+    }
+
+    .middle-panel {
+        flex: 1;
     }
 
     .panel-content {
@@ -157,7 +224,6 @@
         margin: 0;
         display: flex;
         flex-direction: column;
-        min-height: 0;
     }
 
     #editor-container {
@@ -168,7 +234,22 @@
         height: 100%;
     }
 
-    .col-resize-cursor {
-        cursor: col-resize;
+    .resizer {
+        /* Remove default styles */
+        all: unset; 
+        width: 4px;
+        height: 100%;
+        background-color: transparent;
+        border-left: 1px solid var(--accent-primary);
+
+        /* Interaction cues */
+        cursor: ew-resize;
+        z-index: 10;
+        transition: background-color 0.2s ease;
     }
+
+    .resizer:hover, .resizer.active {
+        background-color: var(--accent-primary);
+    }
+
 </style>

@@ -15,7 +15,6 @@
         width: 100%;
         color: inherit;
         background-color: inherit;
-        /* TODO: determine child layout options */
         display: flex;
         gap: 5px;
     }
