@@ -3,6 +3,7 @@ import type { Visualiser } from "./visualiser.svelte";
 import type { TraceEvent } from "./data/events/events.svelte";
 import { invoke } from "@tauri-apps/api/core";
 import { popupManager } from "./popup-store.svelte";
+import type { LevelConstructor } from "./data/levels/level-map.svelte";
 
 /**
  * Class to manage a level session, including loading the level, managing the visualiser, and processing events.
@@ -20,8 +21,8 @@ export class LevelSession {
         code: "",
     });
 
-    constructor(level: Level, visualiser: Visualiser) {
-        this.level = $state(level);
+    constructor(Level: LevelConstructor, visualiser: Visualiser) {
+        this.level = $state(new Level(visualiser));
         this.visualiser = visualiser;
     }
 
@@ -30,9 +31,10 @@ export class LevelSession {
         this.visualiser.initLevel(this.level);
 
         // Initialise the level
-        this.level.init(this.visualiser);
+        this.level.init();
 
         // Move code into the state
+        // TODO: the code isnt being copied into the front end, also the code doesn't change on changing level
         this.state.code = this.level.initialCode;
     }
 

@@ -64,9 +64,8 @@
         
         // Instantiate the level
         const LevelClass = getLevelContstructor(id);
-        const level = new LevelClass();
 
-        session = new LevelSession(level, visualiser);
+        session = new LevelSession(LevelClass, visualiser);
 
         session.init();
     }

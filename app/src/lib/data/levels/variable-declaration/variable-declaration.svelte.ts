@@ -11,8 +11,8 @@ export class VariableDeclarationLevel extends Level {
 
     runCount = 0;
 
-    constructor() {
-        super();
+    constructor(visualiser: Visualiser) {
+        super(visualiser);
         this.id = "variable-declaration";
         this.title = "Variable Declaration";
         this.initialCode = `# Here is a variable named 'x' being declared and assigned the value 5\nlet x = 5\n`;
@@ -21,16 +21,14 @@ export class VariableDeclarationLevel extends Level {
         this.modules = ["variables"];
     }
 
-    init(visualiser: Visualiser): void {
-        this.visualiser = visualiser;
-
+    init(): void {
         this.milestones = [
             { id: "run-code", description: "Run the code to see the variable declaration in action.", completed: false },
             { id: "declare-variable", description: "Declare a new variable named and assign it a value.", completed: false },
         ];
 
         // Attaching a listener to the VARIABLE_DECLARED event to check when the user declares a variable and update the milestones accordingly
-        visualiser.eventBus.on(ModuleEventType.VARIABLE_DECLARED, this.handleVariableDeclared.bind(this));
+        this.visualiser!.eventBus.on(ModuleEventType.VARIABLE_DECLARED, this.handleVariableDeclared.bind(this));
     }
 
     handleEvent(event: TraceEvent, history: any): void {

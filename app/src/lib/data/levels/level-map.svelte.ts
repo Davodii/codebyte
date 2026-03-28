@@ -1,8 +1,9 @@
 // Map of level IDs to their corresponding level classes
+import type { Visualiser } from "$lib/visualiser.svelte";
 import type { Level } from "./level.svelte";
 import { VariableDeclarationLevel } from "./variable-declaration/variable-declaration.svelte";
 
-type LevelConstructor = new () => Level;
+export type LevelConstructor = new (vis: Visualiser) => Level;
 
 export const levelMap: Record<string, LevelConstructor> = {
     "variable-declaration": VariableDeclarationLevel

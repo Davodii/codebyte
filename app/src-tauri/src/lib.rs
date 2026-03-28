@@ -27,6 +27,10 @@ fn interpret_code(input: String) -> Result<Vec<mimble::tracer::TraceEvent>, Stri
                     .as_any()
                     .downcast_ref::<mimble::tracer::TraceCollector>()
                     .ok_or("Failed to downcast tracer")?;
+            
+                // Get the diagnostics
+                let diagnostics = interpreter.diagnotics();
+
                 Ok(trace_collector.get_events().clone())
             }
             else {
