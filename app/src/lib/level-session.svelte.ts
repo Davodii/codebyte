@@ -1,8 +1,7 @@
 import type { Level } from "./data/levels/level.svelte";
 import type { Visualiser } from "./visualiser.svelte";
-import type { TraceEvent } from "./data/events/events.svelte";
+import type { TraceEvent, Diagnostic, InterpretResult } from "./data/events/events.svelte";
 import { invoke } from "@tauri-apps/api/core";
-import { popupManager } from "./popup-store.svelte";
 import type { LevelConstructor } from "./data/levels/level-map.svelte";
 
 /**
@@ -13,7 +12,8 @@ export class LevelSession {
     public visualiser: Visualiser;
 
     state = $state({
-        events: [] as TraceEvent[], // Trace events from interpeter
+        events: [] as TraceEvent[],
+        diagnostics: [] as Diagnostic[],
         currentIndex: 0,
         isPaused: true,
         playbackSpeed: 200,
@@ -21,8 +21,11 @@ export class LevelSession {
         code: "",
     });
 
+    // Set to true to break out of the play loop entirely (level switch, tab change, etc.)
+    private stopped = false;
+
     constructor(Level: LevelConstructor, visualiser: Visualiser) {
-        this.level = $state(new Level(visualiser));
+        this.level = new Level(visualiser);
         this.visualiser = visualiser;
     }
 
@@ -44,14 +47,25 @@ export class LevelSession {
      * This will load the level configuration, initialise the visualiser with the correct modules, and start the engine to process events.
      */
     async start() {
-        // Get the data from the backend
-        this.state.events = await invoke('interpret_code', {input: this.state.code});
-        
+        const result = await invoke<InterpretResult>('interpret_code', { input: this.state.code });
+
+        this.state.diagnostics = result.diagnostics;
+        this.state.events = result.events;
         this.state.currentIndex = 0;
+
+        // Abort playback if there are any errors (diagnostics will be shown inline in the editor)
+        if (result.diagnostics.some(d => d.severity === "Error")) {
+            return;
+        }
+
+        this.stopped = false;
         this.state.isPaused = false;
 
         // Cleanup the visualiser
         this.visualiser.reset();
+
+        // Give modules a chance to pre-analyse the full event list before playback
+        this.visualiser.preprocess(this.state.events);
 
         // Start the main loop
         try {
@@ -66,9 +80,18 @@ export class LevelSession {
     }
 
     /**
-     * Pause execution of events.
+     * Pause execution of events (loop keeps running, waits to resume).
      */
-    async pause() {
+    pause() {
+        this.state.isPaused = true;
+    }
+
+    /**
+     * Stop execution entirely and exit the play loop.
+     * Use this when switching levels or navigating away.
+     */
+    stop() {
+        this.stopped = true;
         this.state.isPaused = true;
     }
 
@@ -92,7 +115,7 @@ export class LevelSession {
     }
 
     private async play() {
-        while (this.state.currentIndex < this.state.events.length) {
+        while (!this.stopped && this.state.currentIndex < this.state.events.length) {
             if (this.state.isPaused) {
                 await new Promise(r => setTimeout(r, 100));
                 continue;

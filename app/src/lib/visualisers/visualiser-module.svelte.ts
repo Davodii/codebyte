@@ -24,6 +24,13 @@ export abstract class VisualiserModule {
     };
 
     /**
+     * Called once with all trace events before playback begins.
+     * Modules that need to pre-analyse the full event list (e.g. to build a tree structure)
+     * should implement this optional method.
+     */
+    preprocess?(events: TraceEvent[]): void;
+
+    /**
      * Handle a trace event for this module.
      * 
      * @param event The trace event to handle

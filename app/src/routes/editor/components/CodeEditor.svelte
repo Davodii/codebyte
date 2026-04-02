@@ -8,6 +8,8 @@
     import { foldGutter, indentOnInput, indentUnit, bracketMatching, foldKeymap, syntaxHighlighting, defaultHighlightStyle} from '@codemirror/language';
     import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
     import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, rectangularSelection, crosshairCursor, highlightActiveLine, keymap} from '@codemirror/view';
+    import { lintGutter, setDiagnostics as cmSetDiagnostics, lintKeymap } from '@codemirror/lint';
+    import type { Diagnostic } from '$lib/data/events/events.svelte';
 
     // Theme
     import { oneDark } from "@codemirror/theme-one-dark";
@@ -27,6 +29,20 @@
         });
     }
 
+    export function showDiagnostics(diagnostics: Diagnostic[]) {
+        const cmDiags = diagnostics.map(d => ({
+            from: d.span.start,
+            to: Math.max(d.span.start + 1, d.span.end),
+            severity: d.severity.toLowerCase() as 'error' | 'warning' | 'info',
+            message: d.message,
+        }));
+        view.dispatch(cmSetDiagnostics(view.state, cmDiags));
+    }
+
+    export function clearDiagnostics() {
+        view.dispatch(cmSetDiagnostics(view.state, []));
+    }
+
     let extensions = [
         basicSetup,
         lineNumbers(),
@@ -41,7 +57,8 @@
         bracketMatching(),
         closeBrackets(),
         autocompletion(),
-        
+        lintGutter(),
+
         // These go together
         rectangularSelection(),
         crosshairCursor(),
@@ -55,6 +72,7 @@
             ...historyKeymap,
             ...foldKeymap,
             ...completionKeymap,
+            ...lintKeymap,
         ]),
 
         // Language

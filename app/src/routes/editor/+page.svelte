@@ -17,6 +17,31 @@
     let visualiser = $state<Visualiser>();
     let levelTree = $state<LevelTree>();
 
+    // Per-level progress, keyed by level ID. Persists across session reloads.
+    let levelProgress = $state<Record<string, {
+        completed: boolean;
+        savedCode?: string;
+        milestones?: Record<string, boolean>;
+    }>>({});
+
+    // Track completion: re-runs whenever any milestone.completed changes
+    $effect(() => {
+        if (session?.level.isComplete) {
+            const id = session.level.id;
+            if (!levelProgress[id]?.completed) {
+                levelProgress[id] = { ...(levelProgress[id] ?? {}), completed: true };
+            }
+        }
+    });
+
+    let completedLevelIds = $derived(
+        new Set(
+            Object.entries(levelProgress)
+                .filter(([, v]) => v.completed)
+                .map(([id]) => id)
+        )
+    );
+
     // --- Draggable splitter state ---
     let panelContainer = $state<HTMLElement>();
     let leftWidth = $state<number>(300);
@@ -60,24 +85,55 @@
     }
 
     const loadLevel = (id: string) => {
-        if (!visualiser) return;
-        
-        // Instantiate the level
+        if (!visualiser || !id) return;
+
+        // Stop any running playback before replacing the session
+        session?.stop();
+
+        // Save current state before replacing the session
+        if (session) {
+            const currentId = session.level.id;
+            levelProgress[currentId] = {
+                completed: levelProgress[currentId]?.completed ?? false,
+                savedCode: session.state.code,
+                milestones: Object.fromEntries(
+                    session.level.milestones.map(m => [m.id, m.completed])
+                ),
+            };
+        }
+
+        editor?.clearDiagnostics();
         const LevelClass = getLevelContstructor(id);
-
         session = new LevelSession(LevelClass, visualiser);
-
         session.init();
+
+        // Restore saved code for this level if available
+        const savedCode = levelProgress[id]?.savedCode;
+        if (savedCode !== undefined) {
+            session.state.code = savedCode;
+        }
+
+        // Restore milestone completion states
+        const savedMilestones = levelProgress[id]?.milestones;
+        if (savedMilestones) {
+            session.level.milestones.forEach(m => {
+                if (savedMilestones[m.id]) {
+                    m.completed = true;
+                }
+            });
+        }
     }
 
-    function startPlayback() {
+    async function startPlayback() {
         if (!session) return;
-        session.start();
+        editor?.clearDiagnostics();
+        await session.start();
+        editor?.showDiagnostics(session.state.diagnostics);
     }
 
     function stopPlayback() {
         if (!session) return;
-        session.pause();
+        session.stop();
     }
 
     function pausePlayback() {
@@ -103,8 +159,7 @@
         setContext('level-session', session);
 
         return () => {
-            // Cleanup logic
-            session?.pause();
+            session?.stop();
 
             // TODO: cleanup anything else?
         };
@@ -127,7 +182,7 @@
 
     <!-- Level select navbar -->
     <nav class="nav-bar">
-        <LevelTree onSelect={loadLevel} bind:this={levelTree} />
+        <LevelTree onSelect={loadLevel} completedLevels={completedLevelIds} bind:this={levelTree} />
     </nav>
 
     <!-- Main panels -->
@@ -158,8 +213,10 @@
             <div class="panel-content">
                 <Controls start={startPlayback} stop={stopPlayback} pause={pausePlayback} changeSpeed={changeSpeed}/>
                 {#if session}
-                <div id="editor-container">
-                    <Editor bind:this={editor} bind:code={session!.state.code} />
+                <div class="editor-container">
+                    {#key session.level.id}
+                        <Editor bind:this={editor} bind:code={session.state.code} />
+                    {/key}
                 </div>
                 {:else}
                 <div class="loading">Initialising level...</div>
@@ -192,25 +249,34 @@
         display:flex;
         flex-direction: row;
         height: 100%;
+        width: 100%;
+        overflow: hidden;
     }
 
     .nav-bar {
         background-color: var(--bg-color);
         border-right: 1px solid var(--accent-primary);
+        /* flex: 1;
+        flex-direction: column;
+        flex-grow: 1; */
     }
 
     .panel-container {
-        flex-grow: 1;
+        flex: 1;
         display: flex;
         padding: 0;
         margin: 0;
+        height: 100%;
         overflow: hidden;
     }
 
     .panel {
-        overflow: auto;
+        display: flex;
+        flex-direction: column;
         background-color: var(--bg-color);
         min-width: 0; /* Allow panels to shrink below their content width */
+        height: 100%;
+        overflow: hidden;
     }
 
     .middle-panel {
@@ -218,19 +284,18 @@
     }
 
     .panel-content {
-        flex-grow: 1;
-        padding: 0;
-        margin: 0;
+        flex: 1;
+        min-height: 0;
         display: flex;
         flex-direction: column;
     }
 
-    #editor-container {
-        display: flex;
+    .editor-container {
         flex-grow: 1;
         min-height: 0;
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
-        height: 100%;
     }
 
     .resizer {
@@ -249,6 +314,14 @@
 
     .resizer:hover, .resizer.active {
         background-color: var(--accent-primary);
+    }
+
+    :global(.cm-editor) {
+        height: 100% !important;
+    }
+
+    :global(.cm-scroller) {
+        overflow: auto !important;
     }
 
 </style>

@@ -3,12 +3,16 @@ import { ModuleRegistry } from "./module-registry.svelte";
 import ModuleContainer from "../components/visualiser/ModuleContainer.svelte";
 import type { Level } from "./data/levels/level.svelte";
 import { VariablesModule } from "./visualisers/variables/variables-module.svelte";
+import { ArrayBarsModule } from "./visualisers/array-bars/array-bars-module.svelte";
+import { BranchTreeModule } from "./visualisers/branch-tree/branch-tree-module.svelte";
 import type { TraceEvent } from "./data/events/events.svelte";
 import { ModuleEventBus } from "./event-bus.svelte";
 import type { VisualiserModule } from "./visualisers/visualiser-module.svelte";
 
 export const moduleMap: Record<string, any> = {
-    "variables": VariablesModule
+    "variables": VariablesModule,
+    "array-bars": ArrayBarsModule,
+    "branch-tree": BranchTreeModule,
 };
 
 export function getModuleClass(name: string) {
@@ -114,9 +118,6 @@ export class Visualiser {
             await tick(); // Wait for the DOM to update before trying to access the div
             const internalDiv = componentInstance.getElement();
 
-            console.log(`Initialising module ${mod.id}`);
-            console.log(internalDiv);
-
             // Call the module's init function, passing in the div it can use to add its UI, 
             // and the registry and event bus for communication  
             mod.init(
@@ -133,12 +134,20 @@ export class Visualiser {
     }
 
     /**
+     * Called once with all events before playback starts.
+     * Forwards to any modules that implement the optional preprocess hook.
+     */
+    preprocess(events: TraceEvent[]) {
+        const all = this.registry.getAll();
+        all.forEach(mod => mod.preprocess?.(events));
+    }
+
+    /**
      * Handle a trace event for the visualiser.
      * @param event
-     * @param history 
+     * @param history
      */
     handleEvent(event: TraceEvent, history: TraceEvent[]) {
-        console.log("Visualiser received event");
         // Broadcast the current event to every visualiser module
         this.registry.broadcast(event, history);
     }

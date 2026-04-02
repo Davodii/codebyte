@@ -4,9 +4,14 @@ import VariableBox from "./VariableBox.svelte";
 import { VisualiserModule } from "../visualiser-module.svelte";
 import { ModuleEventType } from "$lib/event-bus.svelte";
 
-export type Variable = {
+export class Variable {
     name: string;
-    data: TrackedValue;
+    data = $state<TrackedValue>(null!);
+
+    constructor(name: string, data: TrackedValue) {
+        this.name = name;
+        this.data = data;
+    }
 }
 
 type MountedVariable = {
@@ -33,6 +38,10 @@ export class VariablesModule extends VisualiserModule {
     // Current DOM elements
     private activeComponents = new Map<string, MountedVariable>();
 
+    // Each entry is the set of variable names declared in that scope.
+    // Pushed on ScopeEntered, popped (and variables removed) on ScopeExited.
+    private scopeStack: Set<string>[] = [];
+
     public getVariableDomElement(name: string): HTMLElement | null {
         const mountedVar = this.activeComponents.get(name);
 
@@ -55,12 +64,17 @@ export class VariablesModule extends VisualiserModule {
         const data = event.value;
 
         // Initialisation of a variable
-        const variable : Variable = { name, data };
+        const variable = new Variable(name, data);
         this.variables.set(name, variable);
 
         // Create a dedicated wrapper div
         const wrapper = document.createElement("div");
         wrapper.id = `var-wrapper-${name}`;
+
+        // Register in the current scope so it gets cleaned up on ScopeExited
+        if (this.scopeStack.length > 0) {
+            this.scopeStack[this.scopeStack.length - 1].add(name);
+        }
 
         // Append to main container
         this.container!.appendChild(wrapper);
@@ -97,10 +111,21 @@ export class VariablesModule extends VisualiserModule {
     }
 
     handleEvent(event: TraceEvent, history: TraceEvent[]): void {
-        console.log(event);
+        if (event.kind === "ScopeEnter") {
+            this.scopeStack.push(new Set());
+        }
+
+        if (event.kind === "ScopeExit") {
+            const scope = this.scopeStack.pop();
+            if (scope) {
+                scope.forEach(name => this.removeVariable(name));
+            }
+        }
+
         if (event.kind === "Init") {
             this.handleInit(event);
         }
+
         if (event.kind === "Assign") {
             this.handleAssign(event);
         }
@@ -124,9 +149,10 @@ export class VariablesModule extends VisualiserModule {
         // Remove all variables from the UI and clear the map
         this.activeComponents.forEach(({instance, wrapper}) => {
             unmount(instance);
-            wrapper.remove(); // Remove the wrapper element from the DOM
+            wrapper.remove();
         });
         this.activeComponents.clear();
         this.variables.clear();
+        this.scopeStack = [];
     }
 }

@@ -20,7 +20,7 @@ export abstract class Level {
     description: Component | null = null;
     visualisationName: string = "";
     modules: string[] = [];
-    milestones : Milestone[] = [];
+    milestones: Milestone[] = $state([]);
 
     constructor(visualiser: Visualiser) {
         this.visualiser = visualiser;

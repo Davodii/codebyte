@@ -24,11 +24,14 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
+        overflow: hidden;
     }
 
     main {
         flex-grow: 1;
-        /* overflow: hidden; */
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
         position: relative;
     }
 </style>

@@ -4,6 +4,7 @@
         "items": [
             { "name": "Declaring a Variable", "id": "variable-declaration" },
             { "name": "Array Sorting", "id": "array-sorting" },
+            { "name": "Conditionals", "id": "conditionals" },
             { "name": "Fibonacci Numbers", "id": "fibonacci-numbers" }
         ]
     }

@@ -11,7 +11,7 @@
 
 <style>
     .module-container {
-        height: 100%;
+        /* height: 100%; */
         width: 100%;
         color: inherit;
         background-color: inherit;

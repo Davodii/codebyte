@@ -7,8 +7,6 @@ import type { TraceEvent } from "$lib/data/events/events.svelte";
 import { Level } from "../level.svelte";
 
 export class VariableDeclarationLevel extends Level {
-    visualiser: Visualiser | null = null;
-
     runCount = 0;
 
     constructor(visualiser: Visualiser) {
@@ -36,8 +34,6 @@ export class VariableDeclarationLevel extends Level {
     }
 
     handleVariableDeclared(payload : { name: string; data: any }) {
-        console.log("Variable declared:", payload.name, payload.data);
-
         if (!this.visualiser) return;
 
         // Check the name of the variable declared and update the current step accordingly

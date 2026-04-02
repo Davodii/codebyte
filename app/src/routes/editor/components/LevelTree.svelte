@@ -1,7 +1,10 @@
 <script lang="ts">
     import levelsData from "$lib/data/levels/level-hierarchy.json";
 
-    let { onSelect } = $props();
+    let { onSelect, completedLevels = new Set<string>() } : {
+        onSelect: (id: string) => void;
+        completedLevels?: Set<string>;
+    } = $props();
 
     let isCollapsed = $state(false);
 
@@ -37,7 +40,7 @@
     </button>
 
 
-    <ul id="level-sections">
+    <ul class="level-sections">
         {#each sections as section, i}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <li>
@@ -56,9 +59,15 @@
                     <li
                         class="level-item"
                         class:selected={selectedLevel === item.id}
+                        class:completed={completedLevels.has(item.id)}
                         onclick={() => loadLevel(item.id)}
                     >
-                        <span class="text-label">{item.name}</span>
+                        <span class="text-label">
+                            {item.name}
+                            {#if completedLevels.has(item.id)}
+                                <span class="completion-badge">✓</span>
+                            {/if}
+                        </span>
                     </li>
                 {/each}
             </ul>
@@ -69,12 +78,17 @@
 
 <style>
     .level-hierarchy {
-        width: 250px;
+        width: max-content;
         transition: width 0.3s ease;
-        border-right: 1px solid var(--accent-primary);
         overflow-x: hidden;
         white-space: nowrap;
         position: relative;
+    }
+
+    .level-sections {
+        list-style-type: none;
+        padding: 10px;
+        margin: 0;
     }
 
     .collapsed {
@@ -134,6 +148,15 @@
     .selected {
         background-color: #e0e7ff;
         color: #4338ca;
+        font-weight: bold;
+    }
+
+    .completed .text-label {
+        color: #4ade80;
+    }
+
+    .completion-badge {
+        margin-left: 6px;
         font-weight: bold;
     }
 
