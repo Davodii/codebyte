@@ -10,6 +10,7 @@
 
     import { popupManager } from "$lib/popup-store.svelte";
     import Popup from "./components/Popup.svelte";
+    import TourPopup, { type TourStep } from "./components/TourPopup.svelte";
 
     let session = $state<LevelSession | null>(null);
     let visualiserRoot = $state<HTMLDivElement>();
@@ -41,6 +42,51 @@
                 .map(([id]) => id)
         )
     );
+
+    // --- Tour state ---
+    let showTour = $state(false);
+    let navBarEl = $state<HTMLElement>();
+    let leftPanelEl = $state<HTMLElement>();
+    let middlePanelEl = $state<HTMLElement>();
+    let rightPanelEl = $state<HTMLElement>();
+
+    const tourSteps = $derived.by<TourStep[]>(() => [
+        {
+            title: "Welcome to CodeByte!",
+            text: "This is the editor page where you'll learn programming concepts through interactive code visualisation. Let's take a quick tour.",
+            target: null,
+            position: 'center',
+        },
+        {
+            title: "Level Selector",
+            text: "Use this sidebar to switch between levels. Each level teaches a different programming concept.",
+            target: navBarEl ?? null,
+            position: 'right',
+        },
+        {
+            title: "Objectives",
+            text: "This panel shows the current level's objectives. Complete each milestone as you work through the level.",
+            target: leftPanelEl ?? null,
+            position: 'right',
+        },
+        {
+            title: "Code Editor",
+            text: "Write your code here. Use the Run button to execute it, and the playback controls to step through the trace.",
+            target: middlePanelEl ?? null,
+            position: 'right',
+        },
+        {
+            title: "Visualiser",
+            text: "Watch your code come to life here. Each level shows a different visualisation — variables, arrays, decision trees, and more.",
+            target: rightPanelEl ?? null,
+            position: 'left',
+        },
+    ]);
+
+    function completeTour() {
+        localStorage.setItem('codebyte_tour_seen', 'true');
+        showTour = false;
+    }
 
     // --- Draggable splitter state ---
     let panelContainer = $state<HTMLElement>();
@@ -158,6 +204,15 @@
         // Provide to children via Context
         setContext('level-session', session);
 
+        // Show tour on first visit
+        if (!localStorage.getItem('codebyte_tour_seen')) {
+            showTour = true;
+        }
+
+        // TEsting reasons
+        // TODO: remove
+        showTour = true;
+
         return () => {
             session?.stop();
 
@@ -180,14 +235,19 @@
         <Popup {popup} />
      {/each}
 
+    <!-- Onboarding tour -->
+    {#if showTour}
+        <TourPopup steps={tourSteps} onComplete={completeTour} />
+    {/if}
+
     <!-- Level select navbar -->
-    <nav class="nav-bar">
+    <nav class="nav-bar" bind:this={navBarEl}>
         <LevelTree onSelect={loadLevel} completedLevels={completedLevelIds} bind:this={levelTree} />
     </nav>
 
     <!-- Main panels -->
     <main class="panel-container" bind:this={panelContainer}>
-        <section class="panel" style="flex: 0 0 {leftWidth}px; padding: {panelPadding}px;">
+        <section class="panel" bind:this={leftPanelEl} style="flex: 0 0 {leftWidth}px; padding: {panelPadding}px;">
             {#if session}
                 <ObjectivePlanel level={session.level} />
             {:else}
@@ -207,7 +267,7 @@
             aria-label="Resize left panel"
         ></button>
 
-        <section class="panel middle-panel" style="padding: {panelPadding}px;">
+        <section class="panel middle-panel" bind:this={middlePanelEl} style="padding: {panelPadding}px;">
             <h1>Code Editor</h1>
             <hr>
             <div class="panel-content">
@@ -231,7 +291,7 @@
             aria-label="Resize right panel"
         ></button>
 
-        <section class="panel" style="flex: 0 0 {rightWidth}px; padding: {panelPadding}px;">
+        <section class="panel" bind:this={rightPanelEl} style="flex: 0 0 {rightWidth}px; padding: {panelPadding}px;">
             <h1>{session?.level.visualisationName || "Visualiser"}</h1>
             <hr>
             <div class="visualiser-canvas" bind:this={visualiserRoot}></div>
