@@ -43,6 +43,15 @@ enum TraceEventDto {
     ScopeExit {
         scope_id: usize,
     },
+    FunctionCall {
+        call_id: usize,
+        function_name: String,
+        args: Vec<TrackedValueDto>,
+    },
+    FunctionReturn {
+        call_id: usize,
+        return_value: TrackedValueDto,
+    },
 }
 
 #[derive(serde::Serialize)]
@@ -169,6 +178,15 @@ fn translate_event(event: &TraceEvent, interpreter: &mimble::Interpreter) -> Tra
         },
         TraceEvent::ScopeExit { scope_id } => TraceEventDto::ScopeExit {
             scope_id: *scope_id,
+        },
+        TraceEvent::FunctionCall { call_id, function_name, args } => TraceEventDto::FunctionCall {
+            call_id: *call_id,
+            function_name: interpreter.resolve_symbol(*function_name),
+            args: args.iter().map(|a| translate_tracked_value(a, interpreter)).collect(),
+        },
+        TraceEvent::FunctionReturn { call_id, return_value } => TraceEventDto::FunctionReturn {
+            call_id: *call_id,
+            return_value: translate_tracked_value(return_value, interpreter),
         },
     }
 }

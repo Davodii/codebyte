@@ -5,6 +5,7 @@ import type { Level } from "./data/levels/level.svelte";
 import { VariablesModule } from "./visualisers/variables/variables-module.svelte";
 import { ArrayBarsModule } from "./visualisers/array-bars/array-bars-module.svelte";
 import { BranchTreeModule } from "./visualisers/branch-tree/branch-tree-module.svelte";
+import { CallTreeModule } from "./visualisers/call-tree/call-tree-module.svelte";
 import type { TraceEvent } from "./data/events/events.svelte";
 import { ModuleEventBus } from "./event-bus.svelte";
 import type { VisualiserModule } from "./visualisers/visualiser-module.svelte";
@@ -13,6 +14,7 @@ export const moduleMap: Record<string, any> = {
     "variables": VariablesModule,
     "array-bars": ArrayBarsModule,
     "branch-tree": BranchTreeModule,
+    "call-tree": CallTreeModule,
 };
 
 export function getModuleClass(name: string) {
@@ -70,10 +72,13 @@ export class Visualiser {
     cleanup() {
         // Cleanup modules
         this.registry.getAll().forEach(mod => mod.destroy());
-        
+
         // Remove module containers
         this.moduleContainers.forEach(instance => unmount(instance));
         this.moduleContainers.clear();
+
+        // Clear all bus listeners so stale level callbacks don't fire on the next level
+        this.bus.clear();
     }
 
     /**

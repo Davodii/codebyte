@@ -3,6 +3,7 @@ import type { Visualiser } from "$lib/visualiser.svelte";
 import { ArraySortingLevel } from "./array-sorting/array-sorting.svelte";
 import { ConditionalsLevel } from "./conditionals/conditionals.svelte";
 import type { Level } from "./level.svelte";
+import { RecursionLevel } from "./recursion/recursion.svelte";
 import { VariableDeclarationLevel } from "./variable-declaration/variable-declaration.svelte";
 
 export type LevelConstructor = new (vis: Visualiser) => Level;
@@ -11,6 +12,7 @@ export const levelMap: Record<string, LevelConstructor> = {
     "variable-declaration": VariableDeclarationLevel,
     "array-sorting": ArraySortingLevel,
     "conditionals": ConditionalsLevel,
+    "recursion": RecursionLevel,
 };
 
 /**

@@ -92,5 +92,11 @@ export class ModuleEventBus {
         this.listeners[event]?.forEach(callback => callback(payload));
     }
 
-    // TODO: provide a way to unsubscribe from events!!!
+    /**
+     * Remove all listeners. Called by the Visualiser on level switch so stale
+     * level-registered callbacks don't fire across sessions.
+     */
+    clear() {
+        this.listeners = {};
+    }
 }

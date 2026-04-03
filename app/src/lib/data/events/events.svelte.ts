@@ -42,7 +42,9 @@ export type TraceEvent =
     | { kind: "BranchEnter"; statement_id: number; condition_result: boolean }
     | { kind: "BranchExit"; statement_id: number }
     | { kind: "ScopeEnter"; scope_id: number }
-    | { kind: "ScopeExit"; scope_id: number };
+    | { kind: "ScopeExit"; scope_id: number }
+    | { kind: "FunctionCall"; call_id: number; function_name: string; args: TrackedValue[] }
+    | { kind: "FunctionReturn"; call_id: number; return_value: TrackedValue };
 
 export type DataSource =
     | { kind: "Variable"; value: string }

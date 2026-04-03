@@ -15,11 +15,6 @@
         }
         return [...nodes.values()].filter(n => n.parentId === null);
     });
-
-    $effect(() => {
-        // Print the props
-        console.log("BranchTreeView props:", { nodeId, nodes });
-    });
 </script>
 
 {#if nodeId === undefined && nodes.size === 0}
@@ -30,20 +25,18 @@
             <div class="subtree">
                 <!-- Condition node box -->
                 <div class="node-box"
-                    class:active-t  ={node.status === 'active'    && node.conditionResult === true}
-                    class:active-f  ={node.status === 'active'    && node.conditionResult === false}
-                    class:done-t    ={node.status === 'evaluated' && node.conditionResult === true}
-                    class:done-f    ={node.status === 'evaluated' && node.conditionResult === false}
+                    class:active-t ={node.status === 'active'    && node.conditionResult === true}
+                    class:active-f ={node.status === 'active'    && node.conditionResult === false}
+                    class:done-t   ={node.status === 'evaluated' && node.conditionResult === true}
+                    class:done-f   ={node.status === 'evaluated' && node.conditionResult === false}
                 >
                     <code class="label">{node.label}</code>
                     <span class="result">{node.conditionResult ? 'TRUE' : 'FALSE'}</span>
                 </div>
-                {#if node.trueChildId !== null || node.falseChildId !== null}
-                    <!-- Stem from node down to the horizontal bar -->
-                    <div class="stem"></div>
 
+                {#if node.trueChildId !== null || node.falseChildId !== null}
+                    <div class="stem"></div>
                     <div class="branches">
-                        <!-- True branch (left) -->
                         <div class="branch">
                             <div class="drop">
                                 <span class="badge t-badge">T</span>
@@ -53,7 +46,6 @@
                             {/if}
                         </div>
 
-                        <!-- False branch (right) -->
                         <div class="branch">
                             <div class="drop">
                                 <span class="badge f-badge">F</span>
@@ -82,9 +74,6 @@
         width: 100%;
         height: 100%;
         box-sizing: border-box;
-
-        /* TODO: remove this  */
-        border: solid 1px #ccc;
     }
 
     .subtree {
@@ -117,11 +106,11 @@
         font-weight: bold;
     }
 
-    /* Status colours */
-    .active-t  { background: #0f2d0f; border-color: #4caf50; color: #4caf50; }
-    .active-f  { background: #2d0f0f; border-color: #ef5350; color: #ef5350; }
-    .done-t    { background: #0a1f0a; border-color: #2d6e2d; color: #4caf50; }
-    .done-f    { background: #1f0a0a; border-color: #6e2d2d; color: #ef5350; }
+    /* Status colours — green = true, red = false */
+    .active-t { background: #0f2d0f; border-color: #4caf50; color: #4caf50; }
+    .active-f { background: #2d0f0f; border-color: #ef5350; color: #ef5350; }
+    .done-t   { background: #0a1f0a; border-color: #2d6e2d; color: #4caf50; }
+    .done-f   { background: #1f0a0a; border-color: #6e2d2d; color: #ef5350; }
 
     /* ── Connectors ───────────────────────────────────────── */
     .stem {
@@ -133,18 +122,16 @@
     .branches {
         display: flex;
         flex-direction: row;
-        gap: 32px;
         position: relative;
     }
 
-    /* Horizontal bar spanning the two branches */
+    /* Horizontal bar from centre of left branch to centre of right branch */
     .branches::before {
         content: '';
         position: absolute;
         top: 0;
-        /* span between the centre points of the two .branch children */
-        left: calc(25%);
-        right: calc(25%);
+        left: 25%;
+        right: 25%;
         height: 2px;
         background: #444;
     }
@@ -157,7 +144,6 @@
         align-items: center;
     }
 
-    /* Vertical drop from horizontal bar to child */
     .drop {
         width: 2px;
         height: 28px;
@@ -167,7 +153,7 @@
         justify-content: center;
     }
 
-    /* ── T / F badges ─────────────────────────────────────── */
+    /* ── T / F badges on the drop lines ──────────────────── */
     .badge {
         position: absolute;
         top: 50%;
@@ -176,7 +162,6 @@
         font-weight: bold;
         padding: 1px 4px;
         border-radius: 3px;
-        /* shift sideways so badge doesn't overlap the line */
         left: 6px;
     }
 
