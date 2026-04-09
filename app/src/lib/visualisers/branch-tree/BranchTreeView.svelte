@@ -18,20 +18,23 @@
 </script>
 
 {#if nodeId === undefined && nodes.size === 0}
-    <p class="empty">Run the code to see the decision tree.</p>
+    <p class="empty">Run the code to build the decision tree.</p>
 {:else}
     <div class="forest">
         {#each displayNodes as node (node.id)}
             <div class="subtree">
                 <!-- Condition node box -->
                 <div class="node-box"
+                    class:pending  ={node.status === 'pending'}
                     class:active-t ={node.status === 'active'    && node.conditionResult === true}
                     class:active-f ={node.status === 'active'    && node.conditionResult === false}
                     class:done-t   ={node.status === 'evaluated' && node.conditionResult === true}
                     class:done-f   ={node.status === 'evaluated' && node.conditionResult === false}
                 >
                     <code class="label">{node.label}</code>
-                    <span class="result">{node.conditionResult ? 'TRUE' : 'FALSE'}</span>
+                    {#if node.status !== 'pending'}
+                        <span class="result">{node.conditionResult ? 'TRUE' : 'FALSE'}</span>
+                    {/if}
                 </div>
 
                 {#if node.trueChildId !== null || node.falseChildId !== null}
@@ -106,7 +109,8 @@
         font-weight: bold;
     }
 
-    /* Status colours — green = true, red = false */
+    /* Status colours */
+    .pending  { background: #1a1a1a; border-color: #444;    color: #888; }
     .active-t { background: #0f2d0f; border-color: #4caf50; color: #4caf50; }
     .active-f { background: #2d0f0f; border-color: #ef5350; color: #ef5350; }
     .done-t   { background: #0a1f0a; border-color: #2d6e2d; color: #4caf50; }

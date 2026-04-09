@@ -20,7 +20,7 @@ export class RecursionLevel extends Level {
         this.visualisationName = "Call Tree";
         this.initialCode = INITIAL_CODE;
         this.description = RecursionDescription;
-        this.modules = ["call-tree"];
+        this.modules = ["variables", "call-tree"];
     }
 
     init(): void {

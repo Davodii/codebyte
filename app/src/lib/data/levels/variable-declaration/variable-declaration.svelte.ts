@@ -50,11 +50,9 @@ export class VariableDeclarationLevel extends Level {
                 
                 const variableElement = variableModule.getVariableDomElement("x");
 
-                console.log("Variable element:", variableElement);
-
                 popupManager.showPopup({
                     text: `Look! A box has appeared with for the variable 'x'. Now you can move onto the next milestone.`,
-                    target: variableElement
+                    target: null
                 });
             }
         }

@@ -5,7 +5,7 @@ import { SvelteMap } from "svelte/reactivity";
 import { VisualiserModule } from "../visualiser-module.svelte";
 import BranchTreeView from "./BranchTreeView.svelte";
 
-export type BranchNodeStatus = 'active' | 'evaluated';
+export type BranchNodeStatus = 'pending' | 'active' | 'evaluated';
 
 export type BranchNode = {
     id: number;
@@ -38,12 +38,6 @@ export class BranchTreeModule extends VisualiserModule {
     // Reactive map of branch nodes -- drives the view
     nodes = new SvelteMap<number, BranchNode>();
 
-    // Runtime stack tracking which branch we're currently inside
-    private stack: Array<{ id: number; conditionResult: boolean }> = [];
-
-    // The most recent Compare event, used to label the next BranchEnter
-    private lastCompare: (TraceEvent & { kind: "Compare" }) | null = null;
-
     private componentInstance: Record<string, any> | null = null;
 
     init(ctx: VisualiserContext, container: HTMLDivElement): void {
@@ -54,63 +48,75 @@ export class BranchTreeModule extends VisualiserModule {
         });
     }
 
-    handleEvent(event: TraceEvent, _history: TraceEvent[]): void {
-        if (event.kind === "Compare") {
-            this.lastCompare = event;
-        }
+    /**
+     * Pre-scan all events to build the complete decision tree in 'pending' state.
+     * This runs before playback so the full tree is visible immediately.
+     */
+    preprocess(events: TraceEvent[]): void {
+        this.nodes.clear();
+        const stack: Array<{ id: number; conditionResult: boolean }> = [];
+        let lastCompare: (TraceEvent & { kind: "Compare" }) | null = null;
 
-        if (event.kind === "BranchEnter") {
-            const { statement_id, condition_result } = event;
-            const parent = this.stack.at(-1) ?? null;
-
-            if (!this.nodes.has(statement_id)) {
-                const label = this.lastCompare
-                    ? `${formatDataSource(this.lastCompare.left)} ${formatOperator(this.lastCompare.operator)} ${formatDataSource(this.lastCompare.right)}`
-                    : "condition";
-
-                this.nodes.set(statement_id, {
-                    id: statement_id,
-                    parentId: parent?.id ?? null,
-                    depth: this.stack.length,
-                    trueChildId: null,
-                    falseChildId: null,
-                    label,
-                    status: 'active',
-                    conditionResult: condition_result,
-                });
-            } else {
-                // Node revisited (e.g. inside a loop) -- replace object so SvelteMap notifies dependents
-                const existing = this.nodes.get(statement_id)!;
-                this.nodes.set(statement_id, { ...existing, status: 'active', conditionResult: condition_result });
+        for (const event of events) {
+            if (event.kind === "Compare") {
+                lastCompare = event;
             }
 
-            // Wire parent -> this node along the branch that was taken.
-            // Must replace the object via .set() so SvelteMap notifies dependents --
-            // direct property mutation on a plain object is invisible to Svelte's reactivity.
-            if (parent) {
-                const parentNode = this.nodes.get(parent.id)!;
-                if (parent.conditionResult) {
-                    this.nodes.set(parent.id, { ...parentNode, trueChildId: statement_id });
-                } else {
-                    this.nodes.set(parent.id, { ...parentNode, falseChildId: statement_id });
+            if (event.kind === "BranchEnter") {
+                const { statement_id, condition_result } = event;
+                const parent = stack.at(-1) ?? null;
+
+                if (!this.nodes.has(statement_id)) {
+                    const label = lastCompare
+                        ? `${formatDataSource(lastCompare.left)} ${formatOperator(lastCompare.operator)} ${formatDataSource(lastCompare.right)}`
+                        : "condition";
+
+                    this.nodes.set(statement_id, {
+                        id: statement_id,
+                        parentId: parent?.id ?? null,
+                        depth: stack.length,
+                        trueChildId: null,
+                        falseChildId: null,
+                        label,
+                        status: 'pending',
+                        conditionResult: condition_result,
+                    });
                 }
+
+                // Wire parent -> child along the branch that was taken.
+                if (parent) {
+                    const parentNode = this.nodes.get(parent.id)!;
+                    if (parent.conditionResult) {
+                        this.nodes.set(parent.id, { ...parentNode, trueChildId: statement_id });
+                    } else {
+                        this.nodes.set(parent.id, { ...parentNode, falseChildId: statement_id });
+                    }
+                }
+
+                stack.push({ id: statement_id, conditionResult: condition_result });
+                lastCompare = null;
             }
 
-            this.stack.push({ id: statement_id, conditionResult: condition_result });
-            this.lastCompare = null;
+            if (event.kind === "BranchExit") {
+                stack.pop();
+            }
+        }
+    }
+
+    handleEvent(event: TraceEvent, _history: TraceEvent[]): void {
+        if (event.kind === "BranchEnter") {
+            const node = this.nodes.get(event.statement_id);
+            if (node) this.nodes.set(event.statement_id, { ...node, status: 'active' });
         }
 
         if (event.kind === "BranchExit") {
             const node = this.nodes.get(event.statement_id);
             if (node) this.nodes.set(event.statement_id, { ...node, status: 'evaluated' });
-            this.stack.pop();
         }
     }
 
     reset(): void {
         this.nodes.clear();
-        this.stack = [];
-        this.lastCompare = null;
     }
 
     destroy(): void {

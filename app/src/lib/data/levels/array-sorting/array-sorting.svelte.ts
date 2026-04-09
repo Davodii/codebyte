@@ -1,4 +1,6 @@
+import { popupManager } from "$lib/popup-store.svelte";
 import type { Visualiser } from "$lib/visualiser.svelte";
+import type { ArrayBarsModule } from "$lib/visualisers/array-bars/array-bars-module.svelte";
 import type { TraceEvent } from "../../events/events.svelte";
 import { Level } from "../level.svelte";
 import ArraySortingDescription from "./ArraySortingDescription.svelte";
@@ -11,6 +13,7 @@ while i < n do
     let j = 0
     while j < n - i - 1 do
         if arr[j] > arr[j + 1] do
+            # Swap arr[j] and arr[j + 1]
         end
         j = j + 1
     end
@@ -20,15 +23,16 @@ end`;
 export class ArraySortingLevel extends Level {
     private trackedArrayId: number | null = null;
     private currentValues: number[] = [];
+    private popupShown: boolean = false;
 
     constructor(visualiser: Visualiser) {
         super(visualiser);
         this.id = "array-sorting";
         this.title = "Array Sorting";
-        this.visualisationName = "Bar Chart";
+        this.visualisationName = "Array Bars";
         this.initialCode = INITIAL_CODE;
         this.description = ArraySortingDescription;
-        this.modules = ["variables", "array-bars"];
+        this.modules = ["array-bars"];
     }
 
     init(): void {
@@ -40,7 +44,7 @@ export class ArraySortingLevel extends Level {
             },
             {
                 id: "add-swap",
-                description: "The comparisons happen but nothing moves! Add the swap inside the if block:\n  let temp = arr[j]\n  arr[j] = arr[j + 1]\n  arr[j + 1] = temp",
+                description: "Add the swap inside the if block",
                 completed: false,
             },
             {
@@ -66,6 +70,18 @@ export class ArraySortingLevel extends Level {
 
                 const m = this.milestones.find(m => m.id === "run-code");
                 if (m && !m.completed) m.completed = true;
+            }
+        }
+
+        if (event.kind === "Compare" && !this.milestones[1].completed && !this.popupShown) {
+            // Show a popup telling the user a comparison has been made, prompting them to add the swap logic.
+            let dom = this.visualiser?.moduleRegistry.get<ArrayBarsModule>("array-bars")?.getArrayDomElement();
+            if (dom) {
+                popupManager.showPopup({
+                    text: "The algorithm is comparing two elements. Can you add the swap logic to sort the array?",
+                    target: dom,
+                });
+                this.popupShown = true;
             }
         }
 

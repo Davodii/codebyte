@@ -24,6 +24,10 @@ export class ArrayBarsModule extends VisualiserModule {
         });
     }
 
+    public getArrayDomElement(): HTMLElement | null {
+        return this.container === undefined ? null : this.container;
+    }
+
     handleEvent(event: TraceEvent, _history: TraceEvent[]): void {
         // Clear comparison highlights at the start of every event
         for (const bar of this.bars) bar.highlighted = false;
