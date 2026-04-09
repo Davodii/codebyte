@@ -1,4 +1,4 @@
-import type { TraceEvent, TrackedValue } from "$lib/data/events/events.svelte";
+import type { TraceEvent, TrackedValue } from "$lib/events/events.svelte";
 import { mount, unmount, type Component } from "svelte";
 import VariableBox from "./VariableBox.svelte";
 import { VisualiserModule } from "../visualiser-module.svelte";

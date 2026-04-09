@@ -1,5 +1,5 @@
 <script lang="ts">
-    import levelsData from "$lib/data/levels/level-hierarchy.json";
+    import levelsData from "$lib/levels/level-hierarchy.json";
 
     let { onSelect, completedLevels = new Set<string>() } : {
         onSelect: (id: string) => void;
@@ -103,9 +103,10 @@
         width: 100%;
         padding: 10px;
         cursor: pointer;
-        background: #f8f9fa;
+        background: var(--secondary);
+        color: var(--text-color);
         border: none;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid var(--border-color);
     }
 
     ul {
@@ -142,17 +143,17 @@
     }
 
     .level-item:hover {
-        background-color: #f0f0f0;
+        background-color: var(--secondary);
     }
 
     .selected {
-        background-color: #e0e7ff;
-        color: #4338ca;
+        background-color: var(--color-active-bg);
+        color: var(--accent-primary);
         font-weight: bold;
     }
 
     .completed .text-label {
-        color: #4ade80;
+        color: var(--color-success);
     }
 
     .completion-badge {

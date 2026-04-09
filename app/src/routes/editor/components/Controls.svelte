@@ -10,22 +10,27 @@
 </script>
 
 <div class="controls">
-    <button class="control-button start" id="start" onclick={start} style="background: #d1f7c4;">
+    <button class="control-button start" id="start" onclick={start}>
         {@html icons.start}
         <span>Start</span>
     </button>
-    <button class="control-button stop" id="stop" onclick={stop} style="background: #ffd1d1;">
+    <button class="control-button stop" id="stop" onclick={stop}>
         {@html icons.stop}
         <span>Stop</span>
     </button>
-    <button class="control-button pause" id="pause" onclick={pause} style="background: #e0e0e0;">
+    <button class="control-button pause" id="pause" onclick={pause}>
         {@html icons.pause}
         <span>Pause</span>
     </button>
     <div class="speed-control">
         <label for="speed-slider">Speed:</label>
         <input id="speed-slider" type="range" bind:value={speed} onchange={() => {changeSpeed(speed)}} max="300" min="50" step="25"/>
-        <span class="speed-indicator" style="color: {speed < 100 ? '#f00' : speed < 200 ? '#fa0' : '#0a0'}; font-weight: bold; margin-left: 8px;">
+        <span
+            class="speed-indicator"
+            class:fast={speed < 100}
+            class:medium={speed >= 100 && speed < 200}
+            class:slow={speed >= 200}
+        >
             {speed} ms
         </span>
     </div>
@@ -53,19 +58,19 @@
         box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     }
     .control-button.start {
-        color: #1a7f2e;
-        background: #d1f7c4;
+        color: var(--color-success);
+        background: var(--color-success-bg);
     }
     .control-button.stop {
-        color: #b30000;
-        background: #ffd1d1;
+        color: var(--color-danger);
+        background: var(--color-danger-bg);
     }
     .control-button.pause {
-        color: #555;
-        background: #e0e0e0;
+        color: var(--text-muted);
+        background: var(--secondary);
     }
     .control-button:hover {
-        filter: brightness(0.95);
+        filter: brightness(1.15);
     }
     .speed-control {
         display: flex;
@@ -79,5 +84,10 @@
         min-width: 48px;
         text-align: center;
         font-size: 1rem;
+        font-weight: bold;
+        margin-left: 8px;
     }
+    .speed-indicator.fast   { color: var(--color-danger); }
+    .speed-indicator.medium { color: var(--color-warning); }
+    .speed-indicator.slow   { color: var(--color-success); }
 </style>

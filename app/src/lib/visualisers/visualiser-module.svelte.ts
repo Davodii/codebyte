@@ -1,4 +1,4 @@
-import type { TraceEvent } from "$lib/data/events/events.svelte";
+import type { TraceEvent } from "$lib/events/events.svelte";
 import type { VisualiserContext } from "$lib/visualiser.svelte";
 
 /**
@@ -14,9 +14,16 @@ export abstract class VisualiserModule {
     // The container div that this module can render into.
     protected container? : HTMLDivElement;
 
-    // List of module ids that this module depends on. 
+    // List of module ids that this module depends on.
     // The visualiser will ensure that these modules are loaded before this module is initialized.
     dependencies: string[] = [];
+
+    /**
+     * Whether this module's container should grow to fill the available panel space.
+     * Set to true for full-panel visualisations (e.g. tree views, canvas-based modules).
+     * Defaults to false so small modules (e.g. variable cards) stay auto-sized.
+     */
+    fillContainer: boolean = false;
 
     init(ctx: VisualiserContext, container: HTMLDivElement): void {
         this.ctx = ctx;
@@ -27,8 +34,12 @@ export abstract class VisualiserModule {
      * Called once with all trace events before playback begins.
      * Modules that need to pre-analyse the full event list (e.g. to build a tree structure)
      * should implement this optional method.
+     *
+     * @param sourceCode The raw source code the user submitted — available for modules
+     *                   that need to parse the program structure (e.g. building a full
+     *                   branch tree including untaken paths).
      */
-    preprocess?(events: TraceEvent[]): void;
+    preprocess?(events: TraceEvent[], sourceCode: string): void;
 
     /**
      * Handle a trace event for this module.

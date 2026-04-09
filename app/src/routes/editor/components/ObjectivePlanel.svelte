@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Level, Milestone } from "$lib/data/levels/level.svelte";
+    import type { Level, Milestone } from "$lib/levels/level.svelte";
     import type { Component } from "svelte";
 
     let { level } : { level: Level} = $props();
@@ -99,32 +99,32 @@
     /* --- Status Styles --- */
     /* 1. Completed: Green */
     .completed {
-        color: #4ade80;
+        color: var(--color-success);
         opacity: 0.8;
     }
 
     .completed .indicator {
-        background-color: rgba(74, 222, 128, 0.1);
+        background-color: var(--color-success-bg);
     }
 
     .completed .description {
         text-decoration: line-through;
     }
 
-    /* 2. Active: Blue */
+    /* 2. Active: Accent */
     .active {
-        color: #60a5fa;
-        border-left: 3px solid #60a5fa;
-        font-weight: bold;        
+        color: var(--accent-primary);
+        border-left: 3px solid var(--accent-primary);
+        font-weight: bold;
     }
 
     .active .indicator {
         animation: pulse 2s infinite;
     }
 
-    /* 3. Pending: Gray */
+    /* 3. Pending: Muted */
     .pending {
-        color: #6b7280;
+        color: var(--text-muted);
     }
 
     .pending .indicator {

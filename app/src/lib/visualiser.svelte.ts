@@ -1,12 +1,12 @@
 import { mount, tick, unmount } from "svelte";
 import { ModuleRegistry } from "./module-registry.svelte";
 import ModuleContainer from "../components/visualiser/ModuleContainer.svelte";
-import type { Level } from "./data/levels/level.svelte";
+import type { Level } from "./levels/level.svelte";
 import { VariablesModule } from "./visualisers/variables/variables-module.svelte";
 import { ArrayBarsModule } from "./visualisers/array-bars/array-bars-module.svelte";
 import { BranchTreeModule } from "./visualisers/branch-tree/branch-tree-module.svelte";
 import { CallTreeModule } from "./visualisers/call-tree/call-tree-module.svelte";
-import type { TraceEvent } from "./data/events/events.svelte";
+import type { TraceEvent } from "./events/events.svelte";
 import { ModuleEventBus } from "./event-bus.svelte";
 import type { VisualiserModule } from "./visualisers/visualiser-module.svelte";
 
@@ -114,7 +114,7 @@ export class Visualiser {
             // Create a new div for each module, and call the mount function to allow them to add their UI components
             const componentInstance = mount(ModuleContainer, {
                 target: this.root!,
-                props: { id: mod.id }
+                props: { id: mod.id, fill: mod.fillContainer }
             });
 
             // Store the component instance for later use
@@ -142,9 +142,9 @@ export class Visualiser {
      * Called once with all events before playback starts.
      * Forwards to any modules that implement the optional preprocess hook.
      */
-    preprocess(events: TraceEvent[]) {
+    preprocess(events: TraceEvent[], sourceCode: string) {
         const all = this.registry.getAll();
-        all.forEach(mod => mod.preprocess?.(events));
+        all.forEach(mod => mod.preprocess?.(events, sourceCode));
     }
 
     /**

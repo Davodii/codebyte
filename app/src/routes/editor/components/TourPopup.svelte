@@ -6,9 +6,10 @@
         position?: 'below' | 'right' | 'left' | 'center';
     };
 
-    let { steps, onComplete }: {
+    let { steps, onComplete, onSkip }: {
         steps: TourStep[];
         onComplete: () => void;
+        onSkip?: () => void;
     } = $props();
 
     let currentIndex = $state(0);
@@ -51,6 +52,9 @@
     </div>
     <p class="text">{step.text}</p>
     <div class="footer">
+        {#if !isLast}
+            <button class="btn-skip" onclick={() => (onSkip ?? onComplete)()}>Skip</button>
+        {/if}
         <button class="btn" onclick={next}>
             {isLast ? 'Get started' : 'Next'}
         </button>
@@ -68,10 +72,10 @@
     .popup {
         z-index: 1000;
         width: 280px;
-        background: #1e1e1e;
-        border: 1px solid var(--accent-primary, #555);
+        background: var(--primary);
+        border: 1px solid var(--border-color);
         border-radius: 10px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         padding: 16px 18px;
         display: flex;
         flex-direction: column;
@@ -87,17 +91,17 @@
     .title {
         font-weight: bold;
         font-size: 0.95rem;
-        color: #e0e0e0;
+        color: var(--text-color);
     }
 
     .counter {
         font-size: 0.75rem;
-        color: #666;
+        color: var(--text-muted);
     }
 
     .text {
         font-size: 0.85rem;
-        color: #aaa;
+        color: var(--text-muted);
         line-height: 1.5;
         margin: 0;
     }
@@ -105,10 +109,12 @@
     .footer {
         display: flex;
         justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
     }
 
     .btn {
-        background: var(--accent-primary, #555);
+        background: var(--accent-primary);
         color: #fff;
         border: none;
         border-radius: 6px;
@@ -119,5 +125,20 @@
 
     .btn:hover {
         filter: brightness(1.15);
+    }
+
+    .btn-skip {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 6px 8px;
+        border-radius: 6px;
+    }
+
+    .btn-skip:hover {
+        color: var(--text-color);
+        background: var(--secondary);
     }
 </style>

@@ -5,7 +5,7 @@
     import { onMount, setContext } from "svelte";
     import { LevelSession } from "$lib/level-session.svelte";
     import { Visualiser } from "$lib/visualiser.svelte";
-    import { getLevelContstructor } from "$lib/data/levels/level-map.svelte";
+    import { getLevelContstructor } from "$lib/levels/level-map.svelte";
     import ObjectivePlanel from "./components/ObjectivePlanel.svelte";
 
     import { popupManager } from "$lib/popup-store.svelte";
@@ -115,13 +115,13 @@
         if (isDraggingLeft) {
             // Calculate new width from left edge of container
             const newLeftWidth = (event.clientX - containerRect.left) - offset;
-            leftWidth = Math.max(100, Math.min(newLeftWidth, containerRect.width * 0.4));
+            leftWidth = Math.max(100, Math.min(newLeftWidth, containerRect.width * 0.8));
         }
 
         if (isDraggingRight) {
             // Calculate new width from right edge of container
             const newRightWidth = (containerRect.right - event.clientX) - offset;
-            rightWidth = Math.max(100, Math.min(newRightWidth, containerRect.width * 0.4));
+            rightWidth = Math.max(100, Math.min(newRightWidth, containerRect.width * 0.8));
         }
     }
 
@@ -209,10 +209,6 @@
             showTour = true;
         }
 
-        // TEsting reasons
-        // TODO: remove
-        showTour = true;
-
         return () => {
             session?.stop();
 
@@ -291,7 +287,7 @@
             aria-label="Resize right panel"
         ></button>
 
-        <section class="panel" bind:this={rightPanelEl} style="flex: 0 0 {rightWidth}px; padding: {panelPadding}px;">
+        <section class="panel visualiser-panel" bind:this={rightPanelEl} style="flex: 0 0 {rightWidth}px; padding: {panelPadding}px;">
             <h1>{session?.level.visualisationName || "Visualiser"}</h1>
             <hr>
             <div class="visualiser-canvas" bind:this={visualiserRoot}></div>
@@ -314,11 +310,8 @@
     }
 
     .nav-bar {
-        background-color: var(--bg-color);
-        border-right: 1px solid var(--accent-primary);
-        /* flex: 1;
-        flex-direction: column;
-        flex-grow: 1; */
+        background-color: var(--primary);
+        border-right: 1px solid var(--border-color);
     }
 
     .panel-container {
@@ -333,10 +326,22 @@
     .panel {
         display: flex;
         flex-direction: column;
-        background-color: var(--bg-color);
+        background-color: var(--primary);
         min-width: 0; /* Allow panels to shrink below their content width */
         height: 100%;
+        overflow: scroll;
+    }
+
+    /* The visualiser panel must not scroll — TreeCanvas handles navigation */
+    .visualiser-panel {
         overflow: hidden;
+    }
+
+    .visualiser-canvas {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
     }
 
     .middle-panel {
@@ -360,11 +365,11 @@
 
     .resizer {
         /* Remove default styles */
-        all: unset; 
+        all: unset;
         width: 4px;
         height: 100%;
         background-color: transparent;
-        border-left: 1px solid var(--accent-primary);
+        border-left: 1px solid var(--border-color);
 
         /* Interaction cues */
         cursor: ew-resize;

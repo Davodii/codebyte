@@ -1,5 +1,5 @@
-import type { TraceEvent } from "$lib/data/events/events.svelte";
-import { trackedValueToString } from "$lib/data/events/events.svelte";
+import type { TraceEvent } from "$lib/events/events.svelte";
+import { trackedValueToString } from "$lib/events/events.svelte";
 import type { VisualiserContext } from "$lib/visualiser.svelte";
 import { mount, unmount } from "svelte";
 import { SvelteMap } from "svelte/reactivity";
@@ -19,6 +19,7 @@ export type CallNode = {
 
 export class CallTreeModule extends VisualiserModule {
     id = 'call-tree';
+    fillContainer = true;
 
     nodes = new SvelteMap<number, CallNode>();
 

@@ -9,7 +9,7 @@
     import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
     import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, rectangularSelection, crosshairCursor, highlightActiveLine, keymap} from '@codemirror/view';
     import { lintGutter, setDiagnostics as cmSetDiagnostics, lintKeymap } from '@codemirror/lint';
-    import type { Diagnostic } from '$lib/data/events/events.svelte';
+    import type { Diagnostic } from '$lib/events/events.svelte';
 
     // Theme
     import { oneDark } from "@codemirror/theme-one-dark";

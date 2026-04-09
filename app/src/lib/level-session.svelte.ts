@@ -1,8 +1,8 @@
-import type { Level } from "./data/levels/level.svelte";
+import type { Level } from "./levels/level.svelte";
 import type { Visualiser } from "./visualiser.svelte";
-import type { TraceEvent, Diagnostic, InterpretResult } from "./data/events/events.svelte";
+import type { TraceEvent, Diagnostic, InterpretResult } from "./events/events.svelte";
 import { invoke } from "@tauri-apps/api/core";
-import type { LevelConstructor } from "./data/levels/level-map.svelte";
+import type { LevelConstructor } from "./levels/level-map.svelte";
 
 /**
  * Class to manage a level session, including loading the level, managing the visualiser, and processing events.
@@ -65,7 +65,7 @@ export class LevelSession {
         this.visualiser.reset();
 
         // Give modules a chance to pre-analyse the full event list before playback
-        this.visualiser.preprocess(this.state.events);
+        this.visualiser.preprocess(this.state.events, this.state.code);
 
         // Start the main loop
         try {

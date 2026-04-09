@@ -3,7 +3,7 @@ import { popupManager } from "$lib/popup-store.svelte";
 import type { Visualiser } from "$lib/visualiser.svelte";
 import type { VariablesModule } from "$lib/visualisers/variables/variables-module.svelte";
 import VariableLevel from "./VariableLevelDescription.svelte";
-import type { TraceEvent } from "$lib/data/events/events.svelte";
+import type { TraceEvent } from "$lib/events/events.svelte";
 import { Level } from "../level.svelte";
 
 export class VariableDeclarationLevel extends Level {

@@ -41,7 +41,7 @@
 
     a {
         text-decoration: none;
-        color: var(--text);
+        color: var(--text-color);
         padding-bottom: 0.25rem;
     }
 

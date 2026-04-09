@@ -1,6 +1,6 @@
 import type { Visualiser } from "$lib/visualiser.svelte";
 import type { Component } from "svelte";
-import type { TraceEvent } from "$lib/data/events/events.svelte";
+import type { TraceEvent } from "$lib/events/events.svelte";
 
 export interface Milestone {
     id: string;

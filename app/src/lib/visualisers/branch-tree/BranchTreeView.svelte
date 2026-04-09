@@ -7,23 +7,60 @@
         nodeId?: number;
     } = $props();
 
-    // Top-level: find roots. Recursive call: resolve the specific node.
+    const isRoot = nodeId === undefined;
+
     const displayNodes = $derived.by(() => {
-        if (nodeId !== undefined) {
-            const n = nodes.get(nodeId);
+        if (!isRoot) {
+            const n = nodes.get(nodeId!);
             return n ? [n] : [];
         }
         return [...nodes.values()].filter(n => n.parentId === null);
     });
+
+    // Pan/zoom state — only active at root level
+    let tx = $state(0);
+    let ty = $state(0);
+    let scale = $state(1);
+    let isDragging = $state(false);
+    let lastX = 0;
+    let lastY = 0;
+
+    function onWheel(e: WheelEvent) {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        const newScale = Math.max(0.1, Math.min(4, scale * factor));
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        tx = mx - (mx - tx) * (newScale / scale);
+        ty = my - (my - ty) * (newScale / scale);
+        scale = newScale;
+    }
+
+    function onMouseDown(e: MouseEvent) {
+        if (e.button !== 0) return;
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+    }
+
+    function onMouseMove(e: MouseEvent) {
+        if (!isDragging) return;
+        tx += e.clientX - lastX;
+        ty += e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+    }
+
+    function stopDragging() { isDragging = false; }
+    function reset() { tx = 0; ty = 0; scale = 1; }
 </script>
 
-{#if nodeId === undefined && nodes.size === 0}
-    <p class="empty">Run the code to build the decision tree.</p>
-{:else}
+{#snippet forestContent()}
     <div class="forest">
         {#each displayNodes as node (node.id)}
             <div class="subtree">
-                <!-- Condition node box -->
+
                 <div class="node-box"
                     class:pending  ={node.status === 'pending'}
                     class:active-t ={node.status === 'active'    && node.conditionResult === true}
@@ -37,46 +74,133 @@
                     {/if}
                 </div>
 
-                {#if node.trueChildId !== null || node.falseChildId !== null}
-                    <div class="stem"></div>
-                    <div class="branches">
-                        <div class="branch">
-                            <div class="drop">
-                                <span class="badge t-badge">T</span>
-                            </div>
-                            {#if node.trueChildId !== null}
-                                <BranchTreeView {nodes} nodeId={node.trueChildId} />
-                            {/if}
+                <div class="stem"></div>
+                <div class="branches">
+                    <div class="branch">
+                        <div class="drop">
+                            <span class="badge t-badge">T</span>
                         </div>
-
-                        <div class="branch">
-                            <div class="drop">
-                                <span class="badge f-badge">F</span>
-                            </div>
-                            {#if node.falseChildId !== null}
-                                <BranchTreeView {nodes} nodeId={node.falseChildId} />
-                            {/if}
-                        </div>
+                        {#if node.trueChildId !== null}
+                            <BranchTreeView {nodes} nodeId={node.trueChildId} />
+                        {:else}
+                            <div class="leaf-node"></div>
+                        {/if}
                     </div>
-                {/if}
+                    <div class="branch">
+                        <div class="drop">
+                            <span class="badge f-badge">F</span>
+                        </div>
+                        {#if node.falseChildId !== null}
+                            <BranchTreeView {nodes} nodeId={node.falseChildId} />
+                        {:else}
+                            <div class="leaf-node"></div>
+                        {/if}
+                    </div>
+                </div>
+
             </div>
         {/each}
     </div>
+{/snippet}
+
+{#if isRoot}
+    {#if nodes.size === 0}
+        <p class="empty">Run the code to build the decision tree.</p>
+    {:else}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+            class="pan-zoom-outer"
+            class:dragging={isDragging}
+            onwheel={onWheel}
+            onmousedown={onMouseDown}
+            onmousemove={onMouseMove}
+            onmouseup={stopDragging}
+            onmouseleave={stopDragging}
+        >
+            <div class="pan-zoom-inner" style="transform: translate({tx}px, {ty}px) scale({scale})">
+                {@render forestContent()}
+            </div>
+            <div class="hud">
+                <span class="zoom-pct">{Math.round(scale * 100)}%</span>
+                <button class="reset-btn" onclick={reset}>Reset view</button>
+            </div>
+        </div>
+    {/if}
+{:else}
+    {@render forestContent()}
 {/if}
 
 <style>
-    /* ── Wrapper ──────────────────────────────────────────── */
+    /* ── Pan/zoom wrapper ─────────────────────────────────── */
+    .pan-zoom-outer {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        cursor: grab;
+        background-color: var(--bg-color);
+    }
+
+    .pan-zoom-outer.dragging {
+        cursor: grabbing;
+        user-select: none;
+    }
+
+    .pan-zoom-inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: 0 0;
+        min-width: 100%;
+        min-height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .hud {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        z-index: 10;
+        pointer-events: all;
+    }
+
+    .zoom-pct {
+        font-variant-numeric: tabular-nums;
+        min-width: 3ch;
+        text-align: right;
+    }
+
+    .reset-btn {
+        background: none;
+        border: none;
+        color: var(--accent-primary);
+        cursor: pointer;
+        font-size: 0.75rem;
+        padding: 0;
+    }
+
+    .reset-btn:hover { text-decoration: underline; }
+
+    /* ── Forest layout ────────────────────────────────────── */
     .forest {
         display: flex;
         flex-direction: row;
         gap: 48px;
         justify-content: center;
         align-items: flex-start;
-        padding: 16px;
-        overflow: auto;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
+        padding: 24px;
     }
 
     .subtree {
@@ -87,41 +211,42 @@
 
     /* ── Node box ─────────────────────────────────────────── */
     .node-box {
-        width: 130px;
+        width: 140px;
         padding: 8px 12px;
         border-radius: 8px;
-        border: 2px solid;
+        border: 2px solid var(--border-color);
+        background: var(--primary);
+        color: var(--text-color);
         text-align: center;
         display: flex;
         flex-direction: column;
         gap: 4px;
-        transition: border-color 0.2s, background-color 0.2s;
+        transition: border-color 0.25s, background-color 0.25s, color 0.25s;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
     }
 
     .label {
         font-size: 12px;
         font-family: monospace;
         display: block;
+        word-break: break-all;
     }
 
     .result {
-        font-size: 13px;
+        font-size: 11px;
         font-weight: bold;
+        letter-spacing: 0.05em;
     }
 
-    /* Status colours */
-    .pending  { background: #1a1a1a; border-color: #444;    color: #888; }
-    .active-t { background: #0f2d0f; border-color: #4caf50; color: #4caf50; }
-    .active-f { background: #2d0f0f; border-color: #ef5350; color: #ef5350; }
-    .done-t   { background: #0a1f0a; border-color: #2d6e2d; color: #4caf50; }
-    .done-f   { background: #1f0a0a; border-color: #6e2d2d; color: #ef5350; }
+    /* ── Status colours ───────────────────────────────────── */
+    .pending  { background: var(--secondary); border-color: var(--border-color); color: var(--text-muted); }
+    .active-t { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); }
+    .active-f { background: var(--color-danger-bg);  border-color: var(--color-danger);  color: var(--color-danger);  }
+    .done-t   { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+    .done-f   { background: var(--color-danger);  border-color: var(--color-danger);  color: #fff; }
 
     /* ── Connectors ───────────────────────────────────────── */
-    .stem {
-        width: 2px;
-        height: 20px;
-        background: #444;
-    }
+    .stem { width: 2px; height: 20px; background: var(--border-color); }
 
     .branches {
         display: flex;
@@ -129,7 +254,6 @@
         position: relative;
     }
 
-    /* Horizontal bar from centre of left branch to centre of right branch */
     .branches::before {
         content: '';
         position: absolute;
@@ -137,7 +261,7 @@
         left: 25%;
         right: 25%;
         height: 2px;
-        background: #444;
+        background: var(--border-color);
     }
 
     .branch {
@@ -151,31 +275,41 @@
     .drop {
         width: 2px;
         height: 28px;
-        background: #444;
+        background: var(--border-color);
         position: relative;
         display: flex;
         justify-content: center;
     }
 
-    /* ── T / F badges on the drop lines ──────────────────── */
+    /* ── T / F badges ─────────────────────────────────────── */
     .badge {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
         font-size: 10px;
         font-weight: bold;
-        padding: 1px 4px;
+        padding: 1px 5px;
         border-radius: 3px;
         left: 6px;
     }
 
-    .t-badge { color: #4caf50; border: 1px solid #2d6e2d; background: #0a1a0a; }
-    .f-badge { color: #ef5350; border: 1px solid #6e2d2d; background: #1a0a0a; }
+    .t-badge { color: var(--color-success); border: 1px solid var(--color-success); background: var(--color-success-bg); }
+    .f-badge { color: var(--color-danger);  border: 1px solid var(--color-danger);  background: var(--color-danger-bg);  }
 
-    /* ── Misc ─────────────────────────────────────────────── */
+    /* ── Leaf node ────────────────────────────────────────── */
+    .leaf-node {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid var(--border-color);
+        background: var(--secondary);
+        margin-top: 2px;
+    }
+
     .empty {
-        color: #555;
+        color: var(--text-muted);
         font-size: 0.85rem;
         text-align: center;
+        padding: 24px;
     }
 </style>

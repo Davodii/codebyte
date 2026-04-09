@@ -1,4 +1,4 @@
-import type { TraceEvent } from "$lib/data/events/events.svelte";
+import type { TraceEvent } from "$lib/events/events.svelte";
 import type { VisualiserContext } from "$lib/visualiser.svelte";
 import { mount, unmount } from "svelte";
 import { VisualiserModule } from "../visualiser-module.svelte";

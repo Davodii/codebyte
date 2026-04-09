@@ -2,7 +2,7 @@
     import { scale } from "svelte/transition";
     import { elasticOut } from "svelte/easing";
     import type { Variable } from "$lib/visualisers/variables/variables-module.svelte";
-    import { valueToString } from "$lib/data/events/events.svelte";
+    import { valueToString } from "$lib/events/events.svelte";
 
     let { variable, colour = "blue" } : { variable: Variable, colour: string } = $props<{ variable: Variable, colour: string}>();
 
